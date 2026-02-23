@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clear Dark Mode</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background: #f3f4f6;
+    }
+    .container {
+      text-align: center;
+      padding: 2rem;
+      background: white;
+      border-radius: 1rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-top: 1rem;
+    }
+    button:hover {
+      background: #1e40af;
+    }
+    .success {
+      color: #10b981;
+      margin-top: 1rem;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Clear Dark Mode Settings</h1>
+    <p>Click the button below to clear all dark mode settings from localStorage</p>
+    <button onclick="clearDarkMode()">Clear Dark Mode</button>
+    <p class="success" id="success">✅ Dark mode cleared! You can close this page.</p>
+  </div>
+
+  <script>
+    function clearDarkMode() {
+      // Remove theme from localStorage
+      localStorage.removeItem('theme');
+      
+      // Remove dark class from html element
+      document.documentElement.classList.remove('dark');
+      
+      // Show success message
+      document.getElementById('success').style.display = 'block';
+      
+      console.log('Dark mode settings cleared successfully!');
+    }
+  </script>
+</body>
+</html>
