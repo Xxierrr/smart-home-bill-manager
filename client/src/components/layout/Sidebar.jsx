@@ -5,7 +5,8 @@ import {
   BarChart3, 
   Lightbulb, 
   Home, 
-  Settings 
+  Settings,
+  X
 } from 'lucide-react'
 
 const menuItems = [
@@ -17,43 +18,52 @@ const menuItems = [
   { path: '/settings', label: 'Settings', icon: Settings },
 ]
 
-export default function Sidebar({ isOpen }) {
+export default function Sidebar({ isOpen, onNavigate }) {
   const location = useLocation()
 
   return (
     <aside 
-      className={`bg-white border-r border-neutral-200 transition-all duration-300 ${
-        isOpen ? 'w-64' : 'w-0 lg:w-20'
-      }`}
+      className="h-full w-64 bg-white border-r border-neutral-200 flex flex-col"
     >
-      <div className="h-full flex flex-col">
-        {/* Logo */}
-        <div className="h-16 flex items-center px-6 border-b border-neutral-200">
-          {isOpen && (
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent tracking-tight">
-              Smart Home
-            </h1>
-          )}
-        </div>
+      {/* Logo Header - Responsive */}
+      <div className="h-16 flex items-center justify-between px-4 sm:px-6 border-b border-neutral-200 flex-shrink-0">
+        <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent tracking-tight">
+          Smart Home
+        </h1>
+        {/* Close button for mobile */}
+        <button 
+          onClick={onNavigate}
+          className="lg:hidden p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+        >
+          <X className="w-5 h-5 text-neutral-600" />
+        </button>
+      </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 px-3 py-6 space-y-1">
-          {menuItems.map((item) => {
-            const Icon = item.icon
-            const isActive = location.pathname === item.path
-            
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`sidebar-item ${isActive ? 'sidebar-item-active' : ''}`}
-              >
-                <Icon className="w-5 h-5 flex-shrink-0" />
-                {isOpen && <span>{item.label}</span>}
-              </Link>
-            )
-          })}
-        </nav>
+      {/* Navigation - Scrollable on mobile */}
+      <nav className="flex-1 px-3 py-4 sm:py-6 space-y-1 overflow-y-auto">
+        {menuItems.map((item) => {
+          const Icon = item.icon
+          const isActive = location.pathname === item.path
+          
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
+              onClick={onNavigate}
+              className={`sidebar-item ${isActive ? 'sidebar-item-active' : ''}`}
+            >
+              <Icon className="w-5 h-5 flex-shrink-0" />
+              <span className="text-sm sm:text-base">{item.label}</span>
+            </Link>
+          )
+        })}
+      </nav>
+
+      {/* Footer - Optional user info on mobile */}
+      <div className="p-4 border-t border-neutral-200 flex-shrink-0">
+        <p className="text-xs text-neutral-500 text-center">
+          Smart Home Manager v1.0
+        </p>
       </div>
     </aside>
   )

@@ -35,8 +35,6 @@ export default function Header({ onMenuClick }) {
     }
 
     window.addEventListener('storage', handleStorageChange)
-    
-    // Also listen for custom event from Settings page
     window.addEventListener('userProfileUpdated', handleStorageChange)
     
     return () => {
@@ -54,61 +52,89 @@ export default function Header({ onMenuClick }) {
 
   return (
     <>
-      <header className="h-16 bg-white border-b border-neutral-200 flex items-center justify-between px-6">
-        <button
-          onClick={onMenuClick}
-          className="lg:hidden p-2 hover:bg-neutral-100 rounded-lg transition-colors"
-        >
-          <Menu className="w-5 h-5 text-neutral-600" />
-        </button>
+      {/* Responsive Header - Mobile-first design */}
+      <header className="h-14 sm:h-16 bg-white border-b border-neutral-200 flex items-center justify-between px-3 sm:px-6 flex-shrink-0">
+        {/* Left: Menu button (mobile) + Logo (mobile only) */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <button
+            onClick={onMenuClick}
+            className="p-2 hover:bg-neutral-100 rounded-lg transition-colors touch-manipulation"
+            aria-label="Toggle menu"
+          >
+            <Menu className="w-5 h-5 sm:w-6 sm:h-6 text-neutral-600" />
+          </button>
+          
+          {/* Mobile logo - hidden on desktop */}
+          <h1 className="lg:hidden text-base sm:text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            Smart Home
+          </h1>
+        </div>
 
-        <div className="flex-1" />
-
-        <div className="flex items-center gap-4">
-          {/* Notifications */}
+        {/* Right: Notifications + User Profile */}
+        <div className="flex items-center gap-2 sm:gap-4">
+          {/* Notifications Button - Touch-friendly */}
           <button 
             onClick={() => setShowNotifications(true)}
-            className="relative p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+            className="relative p-2 hover:bg-neutral-100 rounded-lg transition-colors touch-manipulation"
+            aria-label="Notifications"
           >
-            <Bell className="w-5 h-5 text-neutral-600" />
+            <Bell className="w-5 h-5 sm:w-6 sm:h-6 text-neutral-600" />
             <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
           </button>
 
-          {/* User Profile */}
+          {/* User Profile - Responsive */}
           <div className="relative">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center gap-3 pl-4 border-l border-neutral-200"
+              className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-4 border-l border-neutral-200 touch-manipulation"
+              aria-label="User menu"
             >
-              <div className="text-right hidden sm:block">
-                <p className="text-sm font-medium text-neutral-800">{fullName}</p>
-                <p className="text-xs text-neutral-500">{userData.email}</p>
+              {/* User info - Hidden on small mobile */}
+              <div className="text-right hidden md:block">
+                <p className="text-sm font-medium text-neutral-800 truncate max-w-[150px]">
+                  {fullName}
+                </p>
+                <p className="text-xs text-neutral-500 truncate max-w-[150px]">
+                  {userData.email}
+                </p>
               </div>
-              <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                <User className="w-5 h-5 text-white" />
+              
+              {/* User Avatar - Always visible */}
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+                <User className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
             </button>
 
-            {/* User Menu Dropdown */}
+            {/* User Menu Dropdown - Responsive */}
             {showUserMenu && (
               <>
                 <div 
                   className="fixed inset-0 z-10"
                   onClick={() => setShowUserMenu(false)}
                 />
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-neutral-200 py-2 z-20">
+                <div className="absolute right-0 mt-2 w-48 sm:w-56 bg-white rounded-lg shadow-lg border border-neutral-200 py-2 z-20">
+                  {/* Mobile: Show user info in dropdown */}
+                  <div className="md:hidden px-4 py-3 border-b border-neutral-200">
+                    <p className="text-sm font-medium text-neutral-800 truncate">
+                      {fullName}
+                    </p>
+                    <p className="text-xs text-neutral-500 truncate">
+                      {userData.email}
+                    </p>
+                  </div>
+                  
                   <button
                     onClick={() => {
                       setShowUserMenu(false)
                       navigate('/settings')
                     }}
-                    className="w-full px-4 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-100 transition-colors"
+                    className="w-full px-4 py-2.5 text-left text-sm text-neutral-700 hover:bg-neutral-100 transition-colors touch-manipulation"
                   >
                     Settings
                   </button>
                   <button
                     onClick={handleLogout}
-                    className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
+                    className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2 touch-manipulation"
                   >
                     <LogOut className="w-4 h-4" />
                     Logout
@@ -120,7 +146,7 @@ export default function Header({ onMenuClick }) {
         </div>
       </header>
 
-      {/* Notifications Panel */}
+      {/* Notifications Panel - Responsive */}
       <NotificationsPanel 
         isOpen={showNotifications}
         onClose={() => setShowNotifications(false)}
