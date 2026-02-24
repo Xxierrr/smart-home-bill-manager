@@ -22,6 +22,11 @@
   --spacing-md: 1rem;     /* 16px */
   --spacing-lg: 1.5rem;   /* 24px */
   --spacing-xl: 2rem;     /* 32px */
+  
+  /* Animation timing */
+  --transition-fast: 0.15s;
+  --transition-normal: 0.3s;
+  --transition-slow: 0.5s;
 }
 
 * {
@@ -36,9 +41,9 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #F3F4F6;
-  font-size: 16px; /* Base font size for mobile */
+  font-size: 16px;
   line-height: 1.5;
-  overflow-x: hidden; /* Prevent horizontal scroll */
+  overflow-x: hidden;
 }
 
 /* Responsive images - prevent overflow */
@@ -48,30 +53,141 @@ img {
   display: block;
 }
 
+/* ============================================
+   SMOOTH SCROLL BEHAVIOR
+   ============================================ */
+html {
+  scroll-behavior: smooth;
+}
+
+/* ============================================
+   CUSTOM SCROLLBAR (Webkit browsers)
+   ============================================ */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
 @layer components {
   /* ============================================
-     RESPONSIVE BUTTONS - Touch-friendly on mobile
+     ENHANCED BUTTONS - Modern Interactive Design
      ============================================ */
+  
+  /* Primary Button - Blue with glow effect */
   .btn-primary {
-    @apply bg-primary hover:bg-primary-dark text-white font-semibold rounded-lg transition-all duration-200 shadow-sm hover:shadow-md;
-    /* Mobile: Larger touch targets (min 44px height) */
-    padding: 0.875rem 1.25rem; /* 14px 20px */
-    font-size: 0.9375rem; /* 15px */
+    @apply bg-primary text-white font-semibold rounded-lg relative overflow-hidden;
+    padding: 0.875rem 1.25rem;
+    font-size: 0.9375rem;
     min-height: 44px;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2), 0 2px 4px -1px rgba(37, 99, 235, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    z-index: 1;
   }
   
+  /* Ripple effect overlay */
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+  }
+  
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.4), 0 4px 8px -2px rgba(37, 99, 235, 0.2);
+    background: var(--primary-blue-light);
+  }
+  
+  .btn-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px -1px rgba(37, 99, 235, 0.3);
+  }
+  
+  .btn-primary:active::before {
+    width: 300px;
+    height: 300px;
+  }
+  
+  .btn-primary:focus-visible {
+    outline: 3px solid rgba(37, 99, 235, 0.5);
+    outline-offset: 2px;
+  }
+  
+  /* Secondary Button - White with border */
   .btn-secondary {
-    @apply bg-white hover:bg-neutral-50 text-primary border border-neutral-200 font-semibold rounded-lg transition-all duration-200;
+    @apply bg-white text-primary border-2 border-neutral-200 font-semibold rounded-lg;
     padding: 0.875rem 1.25rem;
     font-size: 0.9375rem;
     min-height: 44px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   }
   
+  .btn-secondary:hover {
+    background: #f8fafc;
+    border-color: var(--primary-blue);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+  }
+  
+  .btn-secondary:active {
+    transform: scale(0.98);
+  }
+  
+  .btn-secondary:focus-visible {
+    outline: 3px solid rgba(37, 99, 235, 0.5);
+    outline-offset: 2px;
+  }
+  
+  /* Success Button - Green with glow */
   .btn-success {
-    @apply bg-secondary hover:bg-secondary-dark text-white font-semibold rounded-lg transition-all duration-200;
+    @apply bg-secondary text-white font-semibold rounded-lg;
     padding: 0.875rem 1.25rem;
     font-size: 0.9375rem;
     min-height: 44px;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2), 0 2px 4px -1px rgba(16, 185, 129, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .btn-success:hover {
+    background: var(--secondary-green-light);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -5px rgba(16, 185, 129, 0.4), 0 4px 8px -2px rgba(16, 185, 129, 0.2);
+  }
+  
+  .btn-success:active {
+    transform: scale(0.98);
+  }
+  
+  .btn-success:focus-visible {
+    outline: 3px solid rgba(16, 185, 129, 0.5);
+    outline-offset: 2px;
   }
   
   /* Tablet and up: Slightly smaller buttons */
@@ -79,43 +195,98 @@ img {
     .btn-primary,
     .btn-secondary,
     .btn-success {
-      padding: 0.75rem 1.5rem; /* 12px 24px */
+      padding: 0.75rem 1.5rem;
       font-size: 1rem;
     }
   }
   
   /* ============================================
-     RESPONSIVE CARDS - Mobile-first padding
+     ENHANCED CARDS - Interactive & Engaging
      ============================================ */
   .card {
-    @apply bg-white rounded-xl shadow-card hover:shadow-card-hover transition-shadow duration-200 border border-neutral-100;
-    /* Mobile: Smaller padding */
-    padding: 1rem; /* 16px */
+    @apply bg-white rounded-xl border border-neutral-100;
+    padding: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+  }
+  
+  /* Clickable card enhancement */
+  .card-clickable {
+    cursor: pointer;
+  }
+  
+  .card-clickable::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 0.75rem;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.05), rgba(16, 185, 129, 0.05));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .card:hover,
+  .card-clickable:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px -4px rgba(0, 0, 0, 0.08), 0 8px 16px -4px rgba(0, 0, 0, 0.04);
+    border-color: rgba(37, 99, 235, 0.2);
+  }
+  
+  .card-clickable:hover::before {
+    opacity: 1;
+  }
+  
+  .card:active,
+  .card-clickable:active {
+    transform: translateY(-2px);
   }
   
   /* Tablet and up: More padding */
   @media (min-width: 481px) {
     .card {
-      padding: 1.25rem; /* 20px */
+      padding: 1.25rem;
     }
   }
   
   /* Laptop and up: Full padding */
   @media (min-width: 769px) {
     .card {
-      padding: 1.5rem; /* 24px */
+      padding: 1.5rem;
     }
   }
   
   /* ============================================
-     RESPONSIVE INPUT FIELDS - Touch-friendly
+     ENHANCED INPUT FIELDS - Modern & Interactive
      ============================================ */
   .input-field {
-    @apply w-full border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200;
-    /* Mobile: Larger touch targets */
-    padding: 0.875rem 1rem; /* 14px 16px */
-    font-size: 1rem; /* Prevent zoom on iOS */
+    @apply w-full border-2 border-neutral-200 rounded-lg bg-white;
+    padding: 0.875rem 1rem;
+    font-size: 1rem;
     min-height: 44px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  }
+  
+  .input-field:hover {
+    border-color: rgba(37, 99, 235, 0.3);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  }
+  
+  .input-field:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1), 0 2px 4px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
+  }
+  
+  .input-field::placeholder {
+    color: #9ca3af;
+    transition: color 0.3s ease;
+  }
+  
+  .input-field:focus::placeholder {
+    color: #d1d5db;
   }
   
   /* Tablet and up */
@@ -126,13 +297,53 @@ img {
   }
   
   /* ============================================
-     RESPONSIVE SIDEBAR ITEMS
+     ENHANCED SIDEBAR ITEMS - Interactive Navigation
      ============================================ */
   .sidebar-item {
-    @apply flex items-center gap-3 rounded-lg text-neutral-600 hover:bg-neutral-50 transition-colors duration-150 cursor-pointer;
-    /* Mobile: Larger touch targets */
+    @apply flex items-center gap-3 rounded-lg text-neutral-600;
     padding: 0.875rem 1rem;
     min-height: 44px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  /* Slide-in effect */
+  .sidebar-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--primary-blue);
+    transform: scaleY(0);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .sidebar-item:hover {
+    background: #f8fafc;
+    color: var(--primary-blue);
+    transform: translateX(4px);
+  }
+  
+  .sidebar-item:hover::before {
+    transform: scaleY(1);
+  }
+  
+  .sidebar-item:active {
+    transform: translateX(2px) scale(0.98);
+  }
+  
+  /* Active state */
+  .sidebar-item-active {
+    @apply bg-blue-50 text-primary font-medium;
+    box-shadow: inset 0 1px 2px rgba(37, 99, 235, 0.1);
+  }
+  
+  .sidebar-item-active::before {
+    transform: scaleY(1);
   }
   
   /* Tablet and up */
@@ -142,8 +353,129 @@ img {
     }
   }
   
-  .sidebar-item-active {
-    @apply bg-blue-50 text-primary font-medium;
+  /* ============================================
+     ENHANCED LINKS - Smooth Interactions
+     ============================================ */
+  a {
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  
+  a:hover {
+    opacity: 0.8;
+  }
+  
+  /* Text links with underline animation */
+  .link-animated {
+    position: relative;
+    text-decoration: none;
+  }
+  
+  .link-animated::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: currentColor;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .link-animated:hover::after {
+    width: 100%;
+  }
+  
+  /* ============================================
+     ICON BUTTONS - Circular Interactive Buttons
+     ============================================ */
+  .icon-btn {
+    @apply rounded-lg flex items-center justify-center;
+    padding: 0.5rem;
+    min-width: 40px;
+    min-height: 40px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    background: transparent;
+    border: none;
+  }
+  
+  .icon-btn:hover {
+    background: rgba(37, 99, 235, 0.08);
+    transform: scale(1.1);
+  }
+  
+  .icon-btn:active {
+    transform: scale(0.95);
+    background: rgba(37, 99, 235, 0.15);
+  }
+  
+  .icon-btn:focus-visible {
+    outline: 2px solid rgba(37, 99, 235, 0.5);
+    outline-offset: 2px;
+  }
+  
+  /* ============================================
+     STAT CARDS - Animated Number Cards
+     ============================================ */
+  .stat-card {
+    @apply card;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  }
+  
+  .stat-card:hover {
+    background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
+  }
+  
+  .stat-card .stat-icon {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .stat-card:hover .stat-icon {
+    transform: scale(1.1) rotate(5deg);
+  }
+  
+  /* ============================================
+     BADGE ANIMATIONS
+     ============================================ */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium;
+    transition: all 0.2s ease;
+  }
+  
+  .badge:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* ============================================
+     LOADING STATES
+     ============================================ */
+  @keyframes pulse-soft {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
+  }
+  
+  .loading {
+    animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  /* ============================================
+     FOCUS VISIBLE - Accessibility
+     ============================================ */
+  *:focus-visible {
+    outline: 3px solid rgba(37, 99, 235, 0.5);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  
+  /* Remove default focus for mouse users */
+  *:focus:not(:focus-visible) {
+    outline: none;
   }
 }
 
@@ -154,35 +486,38 @@ img {
 
 /* Headings - Scale up on larger screens */
 h1 {
-  font-size: 1.75rem; /* 28px on mobile */
+  font-size: 1.75rem;
   line-height: 1.2;
   font-weight: 700;
+  transition: color 0.3s ease;
 }
 
 h2 {
-  font-size: 1.5rem; /* 24px on mobile */
+  font-size: 1.5rem;
   line-height: 1.3;
   font-weight: 700;
+  transition: color 0.3s ease;
 }
 
 h3 {
-  font-size: 1.25rem; /* 20px on mobile */
+  font-size: 1.25rem;
   line-height: 1.4;
   font-weight: 600;
+  transition: color 0.3s ease;
 }
 
 /* Tablet: Slightly larger */
 @media (min-width: 481px) {
-  h1 { font-size: 2rem; } /* 32px */
-  h2 { font-size: 1.625rem; } /* 26px */
-  h3 { font-size: 1.375rem; } /* 22px */
+  h1 { font-size: 2rem; }
+  h2 { font-size: 1.625rem; }
+  h3 { font-size: 1.375rem; }
 }
 
 /* Laptop and up: Full size */
 @media (min-width: 769px) {
-  h1 { font-size: 2.25rem; } /* 36px */
-  h2 { font-size: 1.875rem; } /* 30px */
-  h3 { font-size: 1.5rem; } /* 24px */
+  h1 { font-size: 2.25rem; }
+  h2 { font-size: 1.875rem; }
+  h3 { font-size: 1.5rem; }
 }
 
 /* ============================================
@@ -194,44 +529,44 @@ h3 {
   width: 100%;
   margin-left: auto;
   margin-right: auto;
-  padding-left: 1rem; /* 16px mobile */
+  padding-left: 1rem;
   padding-right: 1rem;
 }
 
 @media (min-width: 481px) {
   .container-responsive {
-    padding-left: 1.5rem; /* 24px tablet */
+    padding-left: 1.5rem;
     padding-right: 1.5rem;
   }
 }
 
 @media (min-width: 769px) {
   .container-responsive {
-    padding-left: 2rem; /* 32px laptop */
+    padding-left: 2rem;
     padding-right: 2rem;
   }
 }
 
 @media (min-width: 1025px) {
   .container-responsive {
-    max-width: 1280px; /* Desktop max width */
+    max-width: 1280px;
   }
 }
 
 /* Responsive spacing utilities */
 .space-y-responsive > * + * {
-  margin-top: 1rem; /* Mobile */
+  margin-top: 1rem;
 }
 
 @media (min-width: 481px) {
   .space-y-responsive > * + * {
-    margin-top: 1.25rem; /* Tablet */
+    margin-top: 1.25rem;
   }
 }
 
 @media (min-width: 769px) {
   .space-y-responsive > * + * {
-    margin-top: 1.5rem; /* Laptop+ */
+    margin-top: 1.5rem;
   }
 }
 
@@ -251,14 +586,14 @@ h3 {
    ============================================ */
 .responsive-grid {
   display: grid;
-  gap: 1rem; /* Mobile */
-  grid-template-columns: 1fr; /* Single column on mobile */
+  gap: 1rem;
+  grid-template-columns: 1fr;
 }
 
 @media (min-width: 481px) {
   .responsive-grid {
     gap: 1.25rem;
-    grid-template-columns: repeat(2, 1fr); /* 2 columns on tablet */
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
@@ -270,6 +605,23 @@ h3 {
 
 @media (min-width: 1025px) {
   .responsive-grid {
-    grid-template-columns: repeat(4, 1fr); /* 4 columns on desktop */
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ============================================
+   TOUCH DEVICE OPTIMIZATIONS
+   ============================================ */
+@media (hover: none) and (pointer: coarse) {
+  /* Disable hover effects on touch devices */
+  .btn-primary:hover,
+  .btn-secondary:hover,
+  .btn-success:hover {
+    transform: none;
+  }
+  
+  /* Add tap highlight */
+  * {
+    -webkit-tap-highlight-color: rgba(37, 99, 235, 0.1);
   }
 }

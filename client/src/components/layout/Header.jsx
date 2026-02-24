@@ -58,7 +58,7 @@ export default function Header({ onMenuClick }) {
         <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={onMenuClick}
-            className="p-2 hover:bg-neutral-100 rounded-lg transition-colors touch-manipulation"
+            className="icon-btn"
             aria-label="Toggle menu"
           >
             <Menu className="w-5 h-5 sm:w-6 sm:h-6 text-neutral-600" />
@@ -72,14 +72,14 @@ export default function Header({ onMenuClick }) {
 
         {/* Right: Notifications + User Profile */}
         <div className="flex items-center gap-2 sm:gap-4">
-          {/* Notifications Button - Touch-friendly */}
+          {/* Notifications Button - Touch-friendly with pulse animation */}
           <button 
             onClick={() => setShowNotifications(true)}
-            className="relative p-2 hover:bg-neutral-100 rounded-lg transition-colors touch-manipulation"
+            className="icon-btn relative"
             aria-label="Notifications"
           >
             <Bell className="w-5 h-5 sm:w-6 sm:h-6 text-neutral-600" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
           </button>
 
           {/* User Profile - Responsive */}

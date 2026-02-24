@@ -40,58 +40,58 @@ export default function Dashboard() {
         <p className="text-sm sm:text-base text-neutral-500 mt-1">Welcome back! Here's your household overview</p>
       </div>
 
-      {/* Stats Cards - Responsive Grid */}
+      {/* Stats Cards - Responsive Grid with Interactive Effects */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-        <div className="card">
+        <div className="stat-card group cursor-pointer">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-neutral-500">Total Expenses</p>
               <p className="text-2xl font-bold text-neutral-800 mt-1">{formatCurrency(totalExpenses)}</p>
               <div className="flex items-center gap-1 mt-2">
-                <TrendingDown className="w-4 h-4 text-secondary" />
+                <TrendingDown className="w-4 h-4 text-secondary transition-transform group-hover:scale-110" />
                 <span className="text-sm text-secondary font-medium">{savingsPercent}% vs last month</span>
               </div>
             </div>
-            <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
+            <div className="stat-icon w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
               <IndianRupee className="w-6 h-6 text-primary" />
             </div>
           </div>
         </div>
 
-        <div className="card">
+        <div className="stat-card group cursor-pointer">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-neutral-500">Upcoming Bills</p>
               <p className="text-2xl font-bold text-neutral-800 mt-1">3</p>
               <p className="text-sm text-neutral-500 mt-2">Due this week</p>
             </div>
-            <div className="w-12 h-12 bg-amber-50 rounded-lg flex items-center justify-center">
+            <div className="stat-icon w-12 h-12 bg-amber-50 rounded-lg flex items-center justify-center">
               <Calendar className="w-6 h-6 text-amber-500" />
             </div>
           </div>
         </div>
 
-        <div className="card">
+        <div className="stat-card group cursor-pointer">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-neutral-500">Cost per Resident</p>
               <p className="text-2xl font-bold text-neutral-800 mt-1">{formatCurrency(totalExpenses / 4)}</p>
               <p className="text-sm text-neutral-500 mt-2">4 residents</p>
             </div>
-            <div className="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center">
+            <div className="stat-icon w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center">
               <Users className="w-6 h-6 text-purple-500" />
             </div>
           </div>
         </div>
 
-        <div className="card bg-gradient-to-br from-secondary to-secondary-dark text-white">
+        <div className="card bg-gradient-to-br from-secondary to-secondary-dark text-white group cursor-pointer hover:shadow-2xl transition-all duration-300">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-white/80">Potential Savings</p>
               <p className="text-2xl font-bold mt-1">{formatCurrency(1200)}</p>
               <p className="text-sm text-white/80 mt-2">This month</p>
             </div>
-            <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+            <div className="stat-icon w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
               <Zap className="w-6 h-6 text-white" />
             </div>
           </div>
@@ -161,20 +161,23 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Upcoming Bills - Responsive */}
+      {/* Upcoming Bills - Responsive with Enhanced Interactions */}
       <div className="card">
         <div className="flex items-center justify-between mb-3 sm:mb-4">
           <h3 className="text-base sm:text-lg font-semibold text-neutral-800">Upcoming Bills</h3>
-          <button className="text-xs sm:text-sm text-primary hover:text-primary-dark font-medium">
+          <button className="link-animated text-xs sm:text-sm text-primary hover:text-primary-dark font-medium">
             View All
           </button>
         </div>
         <div className="space-y-2 sm:space-y-3">
           {upcomingBills.map((bill) => (
-            <div key={bill.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-neutral-50 rounded-lg hover:bg-neutral-100 transition-colors gap-3 sm:gap-4">
+            <div 
+              key={bill.id} 
+              className="card-clickable flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-neutral-50 rounded-lg hover:bg-white transition-all duration-300 gap-3 sm:gap-4 group"
+            >
               <div className="flex items-center gap-3 sm:gap-4">
-                <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Receipt className="w-5 h-5 text-primary" />
+                <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
+                  <Receipt className="w-5 h-5 text-primary group-hover:scale-110 transition-transform" />
                 </div>
                 <div className="min-w-0">
                   <p className="font-medium text-neutral-800 text-sm sm:text-base truncate">{bill.name}</p>
@@ -183,7 +186,7 @@ export default function Dashboard() {
               </div>
               <div className="flex items-center justify-between sm:flex-col sm:items-end gap-2">
                 <p className="font-semibold text-neutral-800 text-base sm:text-lg">{formatCurrency(bill.amount)}</p>
-                <span className="inline-block px-2 py-1 text-xs font-medium text-amber-700 bg-amber-100 rounded">
+                <span className="badge inline-block px-2 py-1 text-xs font-medium text-amber-700 bg-amber-100 rounded">
                   Pending
                 </span>
               </div>
