@@ -3,14 +3,104 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    
+    <!-- Viewport for responsive design -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Performance: Preconnect to external domains -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <title>SmartHome Bill Manager</title>
+    
+    <!-- Performance: DNS prefetch for faster resolution -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    
+    <!-- Performance: Preload critical fonts -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style">
+    
+    <!-- Performance: Optimized font loading with font-display swap -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    </noscript>
+    
+    <!-- SEO and Performance -->
+    <meta name="description" content="Smart Home Bill Manager - Track and manage your household bills efficiently with analytics and insights">
+    <meta name="theme-color" content="#2563EB">
+    <meta name="keywords" content="bill manager, home bills, expense tracker, household management">
+    
+    <!-- Performance: Inline critical CSS for above-the-fold content -->
+    <style>
+      /* Critical CSS - Prevents layout shift and improves FCP */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      html {
+        -webkit-text-size-adjust: 100%;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      
+      body {
+        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        background-color: #F3F4F6;
+        overflow-x: hidden;
+        line-height: 1.5;
+      }
+      
+      #root {
+        min-height: 100vh;
+        isolation: isolate;
+      }
+      
+      /* Loading skeleton to prevent layout shift and improve LCP */
+      .app-loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        background-color: #F3F4F6;
+      }
+      
+      .spinner {
+        width: 48px;
+        height: 48px;
+        border: 4px solid #E5E7EB;
+        border-top-color: #2563EB;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        will-change: transform;
+      }
+      
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      
+      /* Prevent flash of unstyled content */
+      .app-loading-text {
+        position: absolute;
+        margin-top: 80px;
+        color: #6B7280;
+        font-size: 14px;
+      }
+    </style>
+    
+    <title>Smart Home Bill Manager - Track & Manage Your Bills</title>
   </head>
   <body>
-    <div id="root"></div>
+    <!-- Loading indicator to improve perceived performance and LCP -->
+    <div id="root">
+      <div class="app-loading">
+        <div class="spinner"></div>
+        <div class="app-loading-text">Loading...</div>
+      </div>
+    </div>
+    
+    <!-- Performance: Load main script with type="module" for better caching -->
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

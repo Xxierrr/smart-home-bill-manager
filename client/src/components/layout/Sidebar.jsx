@@ -5,8 +5,7 @@ import {
   BarChart3, 
   Lightbulb, 
   Home, 
-  Settings,
-  X
+  Settings
 } from 'lucide-react'
 
 const menuItems = [
@@ -25,18 +24,11 @@ export default function Sidebar({ isOpen, onNavigate }) {
     <aside 
       className="h-full w-64 bg-white border-r border-neutral-200 flex flex-col"
     >
-      {/* Logo Header - Responsive */}
-      <div className="h-16 flex items-center justify-between px-4 sm:px-6 border-b border-neutral-200 flex-shrink-0">
+      {/* Logo Header */}
+      <div className="h-16 flex items-center justify-center px-4 sm:px-6 border-b border-neutral-200 flex-shrink-0">
         <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent tracking-tight">
           Smart Home
         </h1>
-        {/* Close button for mobile */}
-        <button 
-          onClick={onNavigate}
-          className="lg:hidden p-2 hover:bg-neutral-100 rounded-lg transition-colors"
-        >
-          <X className="w-5 h-5 text-neutral-600" />
-        </button>
       </div>
 
       {/* Navigation - Scrollable on mobile */}

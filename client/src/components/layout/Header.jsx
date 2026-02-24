@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Bell, Menu, User, LogOut } from 'lucide-react'
+import { Bell, User, LogOut } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import NotificationsPanel from '../NotificationsPanel'
@@ -54,17 +54,9 @@ export default function Header({ onMenuClick }) {
     <>
       {/* Responsive Header - Mobile-first design */}
       <header className="h-14 sm:h-16 bg-white border-b border-neutral-200 flex items-center justify-between px-3 sm:px-6 flex-shrink-0">
-        {/* Left: Menu button (mobile) + Logo (mobile only) */}
+        {/* Left: Logo (mobile only) */}
         <div className="flex items-center gap-2 sm:gap-3">
-          <button
-            onClick={onMenuClick}
-            className="icon-btn"
-            aria-label="Toggle menu"
-          >
-            <Menu className="w-5 h-5 sm:w-6 sm:h-6 text-neutral-600" />
-          </button>
-          
-          {/* Mobile logo - hidden on desktop */}
+          {/* Mobile logo */}
           <h1 className="lg:hidden text-base sm:text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             Smart Home
           </h1>

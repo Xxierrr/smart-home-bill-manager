@@ -1,5 +1,5 @@
-import { TrendingUp, TrendingDown, Calendar, Users, Zap, Receipt, IndianRupee } from 'lucide-react'
-import { LineChart, Line, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from 'recharts'
+import { TrendingDown, Calendar, Users, Zap, Receipt, IndianRupee } from 'lucide-react'
+import { LineChart, Line, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts'
 import { formatCurrency } from '../utils/currency'
 
 // Mock data

@@ -613,15 +613,46 @@ h3 {
    TOUCH DEVICE OPTIMIZATIONS
    ============================================ */
 @media (hover: none) and (pointer: coarse) {
-  /* Disable hover effects on touch devices */
+  /* Disable hover effects on touch devices for better performance */
   .btn-primary:hover,
   .btn-secondary:hover,
-  .btn-success:hover {
+  .btn-success:hover,
+  .card:hover,
+  .card-clickable:hover,
+  .sidebar-item:hover {
     transform: none;
+    box-shadow: none;
+  }
+  
+  /* Simplify animations on mobile for better performance */
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
   
   /* Add tap highlight */
   * {
     -webkit-tap-highlight-color: rgba(37, 99, 235, 0.1);
+  }
+  
+  /* Optimize touch targets */
+  button, a, input, select, textarea {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* ============================================
+   PERFORMANCE: Reduce motion for users who prefer it
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
