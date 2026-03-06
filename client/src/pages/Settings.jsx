@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { User, Bell, Lock, Globe } from 'lucide-react'
-import { authAPI } from '../services/api'
-import axios from 'axios'
+import { supabase } from '../config/supabase'
+import { useAuth } from '../context/AuthContext'
 
 export default function Settings() {
   const [loading, setLoading] = useState(false)
@@ -24,54 +24,37 @@ export default function Settings() {
     }
   })
 
+  const { user } = useAuth()
+
   // Load user data on mount
   useEffect(() => {
     loadUserData()
-  }, [])
+  }, [user])
 
   const loadUserData = async () => {
     try {
-      const token = localStorage.getItem('token')
-      
       // First check localStorage for saved profile
       const savedProfile = localStorage.getItem('userProfile')
       if (savedProfile) {
         setUserData(JSON.parse(savedProfile))
         return
       }
-      
-      if (!token) {
-        // Use demo data if not logged in
+
+      if (user) {
         setUserData({
-          firstName: 'Demo',
-          lastName: 'User',
-          email: 'demo@smarthome.com',
-          phone: '+91 9876543210',
+          firstName: user.user_metadata?.first_name || '',
+          lastName: user.user_metadata?.last_name || '',
+          email: user.email || '',
+          phone: user.user_metadata?.phone || '',
           preferences: {
-            currency: 'INR',
-            notifications: true,
-            theme: 'light'
+            currency: user.user_metadata?.currency || 'INR',
+            notifications: user.user_metadata?.notifications ?? true,
+            theme: user.user_metadata?.theme || 'light'
           }
         })
-        return
       }
-      
-      const response = await authAPI.getMe()
-      setUserData(response.data.data)
     } catch (error) {
       console.error('Error loading user data:', error)
-      // Use demo data on error
-      setUserData({
-        firstName: 'Demo',
-        lastName: 'User',
-        email: 'demo@smarthome.com',
-        phone: '+91 9876543210',
-        preferences: {
-          currency: 'INR',
-          notifications: true,
-          theme: 'light'
-        }
-      })
     }
   }
 
@@ -98,26 +81,20 @@ export default function Settings() {
     setMessage('')
     
     try {
-      const token = localStorage.getItem('token')
-      
-      // If no token, save to localStorage for demo purposes
-      if (!token) {
-        localStorage.setItem('userProfile', JSON.stringify(userData))
-        // Trigger event to update Header
-        window.dispatchEvent(new Event('userProfileUpdated'))
-        setMessage('✅ Settings saved successfully!')
-        setTimeout(() => setMessage(''), 3000)
-        setLoading(false)
-        return
-      }
-      
-      // Update user profile via API
-      await axios.put('http://localhost:5000/api/v1/auth/update', userData, {
-        headers: {
-          Authorization: `Bearer ${token}`
+      // Update user metadata in Supabase
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          first_name: userData.firstName,
+          last_name: userData.lastName,
+          phone: userData.phone,
+          currency: userData.preferences.currency,
+          notifications: userData.preferences.notifications,
+          theme: userData.preferences.theme
         }
       })
-      
+
+      if (error) throw error
+
       // Also save to localStorage and trigger event
       localStorage.setItem('userProfile', JSON.stringify(userData))
       window.dispatchEvent(new Event('userProfileUpdated'))
@@ -137,7 +114,7 @@ export default function Settings() {
     }
   }
 
-  const handleChangePassword = () => {
+  const handleChangePassword = async () => {
     if (!passwordData.current || !passwordData.new || !passwordData.confirm) {
       setMessage('❌ Please fill in all password fields')
       setTimeout(() => setMessage(''), 3000)
@@ -156,19 +133,22 @@ export default function Settings() {
       return
     }
 
-    // Save password change
-    const users = JSON.parse(localStorage.getItem('users') || '[]')
-    const userIndex = users.findIndex(u => u.email === userData.email)
-    
-    if (userIndex !== -1) {
-      users[userIndex].password = passwordData.new
-      localStorage.setItem('users', JSON.stringify(users))
-    }
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: passwordData.new
+      })
 
-    setMessage('✅ Password changed successfully!')
-    setShowChangePassword(false)
-    setPasswordData({ current: '', new: '', confirm: '' })
-    setTimeout(() => setMessage(''), 3000)
+      if (error) throw error
+
+      setMessage('✅ Password changed successfully!')
+      setShowChangePassword(false)
+      setPasswordData({ current: '', new: '', confirm: '' })
+      setTimeout(() => setMessage(''), 3000)
+    } catch (error) {
+      console.error('Error changing password:', error)
+      setMessage('❌ ' + (error.message || 'Failed to change password'))
+      setTimeout(() => setMessage(''), 3000)
+    }
   }
 
   return (

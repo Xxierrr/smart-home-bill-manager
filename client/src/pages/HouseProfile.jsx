@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Home, Users, Zap, MapPin, Edit, X } from 'lucide-react'
 import { formatCurrency } from '../utils/currency'
+import { db } from '../config/supabase'
+import { useAuth } from '../context/AuthContext'
 
 const appliances = [
   { id: 1, name: 'Air Conditioner', category: 'Cooling', wattage: 3500, hours: 8, cost: 2520 },
@@ -11,17 +13,50 @@ const appliances = [
 ]
 
 export default function HouseProfile() {
+  const { user } = useAuth()
   const [showEditModal, setShowEditModal] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [household, setHousehold] = useState(null)
   const [houseData, setHouseData] = useState({
-    houseType: 'Apartment',
+    name: 'My Home',
+    house_type: 'Apartment',
     residents: 4,
     rooms: 3,
-    location: 'Bangalore',
-    street: '123 MG Road, Apt 4B',
+    address: '123 MG Road, Apt 4B',
     city: 'Bangalore',
     state: 'Karnataka',
-    zipCode: '560001'
+    postal_code: '560001'
   })
+
+  useEffect(() => {
+    if (user) {
+      loadHousehold()
+    }
+  }, [user])
+
+  const loadHousehold = async () => {
+    try {
+      const data = await db.households.get(user.id)
+      if (data) {
+        setHousehold(data)
+        setHouseData({
+          name: data.name || 'My Home',
+          house_type: data.house_type || 'Apartment',
+          residents: data.residents || 4,
+          rooms: data.rooms || 3,
+          address: data.address || '',
+          city: data.city || 'Bangalore',
+          state: data.state || 'Karnataka',
+          postal_code: data.postal_code || ''
+        })
+      }
+    } catch (error) {
+      // Household might not exist yet, that's okay
+      console.log('No household found, will create on save')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -31,12 +66,33 @@ export default function HouseProfile() {
     }))
   }
 
-  const handleSave = () => {
-    // Save to localStorage
-    localStorage.setItem('houseProfile', JSON.stringify(houseData))
-    setShowEditModal(false)
-    // Show success message
-    alert('House profile updated successfully!')
+  const handleSave = async () => {
+    try {
+      if (household) {
+        // Update existing household
+        await db.households.update(household.id, houseData)
+      } else {
+        // Create new household
+        const newHousehold = await db.households.create({
+          user_id: user.id,
+          ...houseData
+        })
+        setHousehold(newHousehold)
+      }
+      setShowEditModal(false)
+      alert('House profile updated successfully!')
+    } catch (error) {
+      console.error('Error saving household:', error)
+      alert('Failed to save house profile. Please try again.')
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-neutral-500">Loading...</div>
+      </div>
+    )
   }
 
   return (
@@ -76,8 +132,8 @@ export default function HouseProfile() {
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-2">House Type</label>
                   <select 
-                    name="houseType"
-                    value={houseData.houseType}
+                    name="house_type"
+                    value={houseData.house_type}
                     onChange={handleInputChange}
                     className="input-field"
                   >
@@ -116,8 +172,8 @@ export default function HouseProfile() {
                   <label className="block text-sm font-medium text-neutral-700 mb-2">Street Address</label>
                   <input 
                     type="text"
-                    name="street"
-                    value={houseData.street}
+                    name="address"
+                    value={houseData.address}
                     onChange={handleInputChange}
                     className="input-field"
                   />
@@ -147,8 +203,8 @@ export default function HouseProfile() {
                     <label className="block text-sm font-medium text-neutral-700 mb-2">ZIP Code</label>
                     <input 
                       type="text"
-                      name="zipCode"
-                      value={houseData.zipCode}
+                      name="postal_code"
+                      value={houseData.postal_code}
                       onChange={handleInputChange}
                       className="input-field"
                     />
@@ -185,7 +241,7 @@ export default function HouseProfile() {
             </div>
             <span className="text-sm text-neutral-500">House Type</span>
           </div>
-          <p className="text-xl font-semibold text-neutral-800">{houseData.houseType}</p>
+          <p className="text-xl font-semibold text-neutral-800">{houseData.house_type}</p>
         </div>
 
         <div className="card">
@@ -215,7 +271,7 @@ export default function HouseProfile() {
             </div>
             <span className="text-sm text-neutral-500">Location</span>
           </div>
-          <p className="text-xl font-semibold text-neutral-800">{houseData.location}</p>
+          <p className="text-xl font-semibold text-neutral-800">{houseData.city}</p>
         </div>
       </div>
 
@@ -225,7 +281,7 @@ export default function HouseProfile() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="text-sm text-neutral-500">Street Address</label>
-            <p className="text-neutral-800 font-medium mt-1">{houseData.street}</p>
+            <p className="text-neutral-800 font-medium mt-1">{houseData.address}</p>
           </div>
           <div>
             <label className="text-sm text-neutral-500">City</label>
@@ -237,7 +293,7 @@ export default function HouseProfile() {
           </div>
           <div>
             <label className="text-sm text-neutral-500">ZIP Code</label>
-            <p className="text-neutral-800 font-medium mt-1">{houseData.zipCode}</p>
+            <p className="text-neutral-800 font-medium mt-1">{houseData.postal_code}</p>
           </div>
         </div>
       </div>

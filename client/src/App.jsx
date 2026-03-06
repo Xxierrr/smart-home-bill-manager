@@ -26,7 +26,11 @@ function LoadingFallback() {
 }
 
 function AppRoutes() {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, loading } = useAuth()
+
+  if (loading) {
+    return <LoadingFallback />
+  }
 
   return (
     <Suspense fallback={<LoadingFallback />}>

@@ -10,7 +10,7 @@ export default defineConfig({
       jsxRuntime: 'automatic',
     })
   ],
-  base: './',
+  base: '/',
   server: {
     port: 5173,
     proxy: {
@@ -50,22 +50,8 @@ export default defineConfig({
     },
     // Optimize chunk size
     chunkSizeWarningLimit: 1000,
-    // Enable minification with aggressive settings
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true, // Remove console.logs in production
-        drop_debugger: true,
-        pure_funcs: ['console.log', 'console.info', 'console.debug'], // Remove specific console methods
-        passes: 2, // Multiple passes for better compression
-      },
-      mangle: {
-        safari10: true, // Fix Safari 10 issues
-      },
-      format: {
-        comments: false, // Remove all comments
-      },
-    },
+    // Enable minification with esbuild (built-in, no extra dependency)
+    minify: 'esbuild',
     // Enable CSS code splitting
     cssCodeSplit: true,
     // Source maps for debugging (disable in production for better performance)

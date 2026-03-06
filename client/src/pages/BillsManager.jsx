@@ -1,45 +1,52 @@
 import { useState, useEffect } from 'react'
 import { Plus, Search, Filter, Receipt, Edit, Trash2, Check, X } from 'lucide-react'
 import { formatCurrency } from '../utils/currency'
-
-const initialMockBills = [
-  { id: 1, category: 'Electricity', amount: 2800, dueDate: '2026-02-25', status: 'pending', provider: 'BESCOM' },
-  { id: 2, category: 'Water', amount: 650, dueDate: '2026-03-01', status: 'pending', provider: 'BWSSB' },
-  { id: 3, category: 'Internet', amount: 599, dueDate: '2026-02-28', status: 'pending', provider: 'Airtel' },
-  { id: 4, category: 'Gas', amount: 1200, dueDate: '2026-02-20', status: 'paid', provider: 'Indane Gas' },
-  { id: 5, category: 'Rent', amount: 8000, dueDate: '2026-02-01', status: 'paid', provider: 'Landlord' },
-]
+import { db } from '../config/supabase'
+import { useAuth } from '../context/AuthContext'
 
 const defaultCategories = ['Electricity', 'Water', 'Gas', 'Internet', 'Rent', 'Groceries', 'Maintenance']
 
 export default function BillsManager() {
+  const { user } = useAuth()
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [searchTerm, setSearchTerm] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
-  const [bills, setBills] = useState(initialMockBills)
+  const [bills, setBills] = useState([])
   const [categories, setCategories] = useState(defaultCategories)
   const [showCustomCategory, setShowCustomCategory] = useState(false)
   const [customCategory, setCustomCategory] = useState('')
+  const [loading, setLoading] = useState(true)
   const [newBill, setNewBill] = useState({
     category: 'Electricity',
     amount: '',
-    dueDate: '',
+    due_date: '',
     provider: '',
     status: 'pending'
   })
 
-  // Load bills and categories from localStorage on mount
   useEffect(() => {
-    const savedBills = localStorage.getItem('bills')
-    if (savedBills) {
-      setBills(JSON.parse(savedBills))
+    if (user) {
+      loadBills()
     }
     
+    // Load custom categories from localStorage
     const savedCategories = localStorage.getItem('billCategories')
     if (savedCategories) {
       setCategories(JSON.parse(savedCategories))
     }
-  }, [])
+  }, [user])
+
+  const loadBills = async () => {
+    try {
+      const data = await db.bills.getAll(user.id)
+      setBills(data || [])
+    } catch (error) {
+      console.error('Error loading bills:', error)
+      alert('Failed to load bills. Please check your Supabase connection.')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -49,51 +56,62 @@ export default function BillsManager() {
     }))
   }
 
-  const handleAddBill = () => {
-    if (!newBill.amount || !newBill.dueDate || !newBill.provider) {
+  const handleAddBill = async () => {
+    if (!newBill.amount || !newBill.due_date || !newBill.provider) {
       alert('Please fill in all required fields')
       return
     }
 
-    const billToAdd = {
-      id: Date.now(),
-      category: newBill.category,
-      amount: parseFloat(newBill.amount),
-      dueDate: newBill.dueDate,
-      provider: newBill.provider,
-      status: newBill.status
+    try {
+      const billToAdd = {
+        user_id: user.id,
+        category: newBill.category,
+        amount: parseFloat(newBill.amount),
+        due_date: newBill.due_date,
+        provider: newBill.provider,
+        status: newBill.status,
+        currency: 'INR'
+      }
+
+      const addedBill = await db.bills.create(billToAdd)
+      setBills([...bills, addedBill])
+
+      // Reset form
+      setNewBill({
+        category: 'Electricity',
+        amount: '',
+        due_date: '',
+        provider: '',
+        status: 'pending'
+      })
+      setShowAddModal(false)
+      alert('Bill added successfully!')
+    } catch (error) {
+      console.error('Error adding bill:', error)
+      alert('Failed to add bill. Please try again.')
     }
-
-    const updatedBills = [...bills, billToAdd]
-    setBills(updatedBills)
-    localStorage.setItem('bills', JSON.stringify(updatedBills))
-
-    // Reset form
-    setNewBill({
-      category: 'Electricity',
-      amount: '',
-      dueDate: '',
-      provider: '',
-      status: 'pending'
-    })
-    setShowAddModal(false)
-    alert('Bill added successfully!')
   }
 
-  const handleDeleteBill = (id) => {
+  const handleDeleteBill = async (id) => {
     if (confirm('Are you sure you want to delete this bill?')) {
-      const updatedBills = bills.filter(bill => bill.id !== id)
-      setBills(updatedBills)
-      localStorage.setItem('bills', JSON.stringify(updatedBills))
+      try {
+        await db.bills.delete(id)
+        setBills(bills.filter(bill => bill.id !== id))
+      } catch (error) {
+        console.error('Error deleting bill:', error)
+        alert('Failed to delete bill. Please try again.')
+      }
     }
   }
 
-  const handleMarkAsPaid = (id) => {
-    const updatedBills = bills.map(bill => 
-      bill.id === id ? { ...bill, status: 'paid' } : bill
-    )
-    setBills(updatedBills)
-    localStorage.setItem('bills', JSON.stringify(updatedBills))
+  const handleMarkAsPaid = async (id) => {
+    try {
+      const updatedBill = await db.bills.update(id, { status: 'paid', payment_date: new Date().toISOString().split('T')[0] })
+      setBills(bills.map(bill => bill.id === id ? updatedBill : bill))
+    } catch (error) {
+      console.error('Error updating bill:', error)
+      alert('Failed to update bill. Please try again.')
+    }
   }
 
   const handleAddCustomCategory = () => {
@@ -124,6 +142,14 @@ export default function BillsManager() {
                          bill.category.toLowerCase().includes(searchTerm.toLowerCase())
     return matchesCategory && matchesSearch
   })
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-neutral-500">Loading...</div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -240,8 +266,8 @@ export default function BillsManager() {
                 <label className="block text-sm font-medium text-neutral-700 mb-2">Due Date *</label>
                 <input 
                   type="date"
-                  name="dueDate"
-                  value={newBill.dueDate}
+                  name="due_date"
+                  value={newBill.due_date}
                   onChange={handleInputChange}
                   className="input-field"
                 />
@@ -335,7 +361,7 @@ export default function BillsManager() {
               <div className="flex items-center gap-6">
                 <div className="text-right">
                   <p className="text-2xl font-bold text-neutral-800">{formatCurrency(bill.amount)}</p>
-                  <p className="text-sm text-neutral-500">Due: {bill.dueDate}</p>
+                  <p className="text-sm text-neutral-500">Due: {bill.due_date}</p>
                 </div>
 
                 <div className="flex items-center gap-2">

@@ -1,36 +1,74 @@
+import { useState, useEffect } from 'react'
 import { TrendingDown, Calendar, Users, Zap, Receipt, IndianRupee } from 'lucide-react'
 import { LineChart, Line, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts'
 import { formatCurrency } from '../utils/currency'
-
-// Mock data
-const monthlyTrend = [
-  { month: 'Jan', amount: 10250 },
-  { month: 'Feb', amount: 9800 },
-  { month: 'Mar', amount: 11200 },
-  { month: 'Apr', amount: 9500 },
-  { month: 'May', amount: 10800 },
-  { month: 'Jun', amount: 9200 },
-]
-
-const categoryData = [
-  { name: 'Electricity', value: 2800, color: '#2563EB' },
-  { name: 'Water', value: 650, color: '#3B82F6' },
-  { name: 'Gas', value: 1200, color: '#60A5FA' },
-  { name: 'Internet', value: 599, color: '#93C5FD' },
-  { name: 'Rent', value: 8000, color: '#DBEAFE' },
-  { name: 'Groceries', value: 4500, color: '#10B981' },
-]
-
-const upcomingBills = [
-  { id: 1, name: 'Electricity Bill', amount: 2800, dueDate: '2026-02-25', status: 'pending' },
-  { id: 2, name: 'Internet Bill', amount: 599, dueDate: '2026-02-28', status: 'pending' },
-  { id: 3, name: 'Water Bill', amount: 650, dueDate: '2026-03-01', status: 'pending' },
-]
+import { db } from '../config/supabase'
+import { useAuth } from '../context/AuthContext'
 
 export default function Dashboard() {
-  const totalExpenses = 17849
+  const { user } = useAuth()
+  const [bills, setBills] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (user) {
+      loadBills()
+    }
+  }, [user])
+
+  const loadBills = async () => {
+    try {
+      const data = await db.bills.getAll(user.id)
+      setBills(data || [])
+    } catch (error) {
+      console.error('Error loading bills:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Calculate stats from bills
+  const totalExpenses = bills.reduce((sum, bill) => sum + parseFloat(bill.amount || 0), 0)
+  const upcomingBills = bills
+    .filter(bill => bill.status === 'pending')
+    .sort((a, b) => new Date(a.due_date) - new Date(b.due_date))
+    .slice(0, 3)
+
+  // Calculate category breakdown
+  const categoryData = bills.reduce((acc, bill) => {
+    const existing = acc.find(item => item.name === bill.category)
+    if (existing) {
+      existing.value += parseFloat(bill.amount || 0)
+    } else {
+      acc.push({
+        name: bill.category,
+        value: parseFloat(bill.amount || 0),
+        color: getCategoryColor(bill.category)
+      })
+    }
+    return acc
+  }, [])
+
+  // Mock monthly trend (would need historical data)
+  const monthlyTrend = [
+    { month: 'Jan', amount: 10250 },
+    { month: 'Feb', amount: 9800 },
+    { month: 'Mar', amount: 11200 },
+    { month: 'Apr', amount: 9500 },
+    { month: 'May', amount: 10800 },
+    { month: 'Jun', amount: 9200 },
+  ]
+
   const lastMonthExpenses = 19500
   const savingsPercent = ((lastMonthExpenses - totalExpenses) / lastMonthExpenses * 100).toFixed(1)
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-neutral-500">Loading...</div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -62,7 +100,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-neutral-500">Upcoming Bills</p>
-              <p className="text-2xl font-bold text-neutral-800 mt-1">3</p>
+              <p className="text-2xl font-bold text-neutral-800 mt-1">{upcomingBills.length}</p>
               <p className="text-sm text-neutral-500 mt-2">Due this week</p>
             </div>
             <div className="stat-icon w-12 h-12 bg-amber-50 rounded-lg flex items-center justify-center">
@@ -129,35 +167,41 @@ export default function Dashboard() {
         {/* Category Breakdown */}
         <div className="card">
           <h3 className="text-base sm:text-lg font-semibold text-neutral-800 mb-3 sm:mb-4">Category Breakdown</h3>
-          <ResponsiveContainer width="100%" height={250} className="sm:h-[300px]">
-            <PieChart>
-              <Pie
-                data={categoryData}
-                cx="50%"
-                cy="50%"
-                innerRadius={50}
-                outerRadius={80}
-                paddingAngle={2}
-                dataKey="value"
-              >
-                {categoryData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
+          {categoryData.length > 0 ? (
+            <>
+              <ResponsiveContainer width="100%" height={250} className="sm:h-[300px]">
+                <PieChart>
+                  <Pie
+                    data={categoryData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={50}
+                    outerRadius={80}
+                    paddingAngle={2}
+                    dataKey="value"
+                  >
+                    {categoryData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{ fontSize: '14px' }} />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="mt-3 sm:mt-4 space-y-2">
+                {categoryData.slice(0, 3).map((item) => (
+                  <div key={item.name} className="flex items-center justify-between text-xs sm:text-sm">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full" style={{ backgroundColor: item.color }} />
+                      <span className="text-neutral-600">{item.name}</span>
+                    </div>
+                    <span className="font-medium text-neutral-800">{formatCurrency(item.value)}</span>
+                  </div>
                 ))}
-              </Pie>
-              <Tooltip contentStyle={{ fontSize: '14px' }} />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="mt-3 sm:mt-4 space-y-2">
-            {categoryData.slice(0, 3).map((item) => (
-              <div key={item.name} className="flex items-center justify-between text-xs sm:text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full" style={{ backgroundColor: item.color }} />
-                  <span className="text-neutral-600">{item.name}</span>
-                </div>
-                <span className="font-medium text-neutral-800">{formatCurrency(item.value)}</span>
               </div>
-            ))}
-          </div>
+            </>
+          ) : (
+            <div className="text-center py-8 text-neutral-500">No data available</div>
+          )}
         </div>
       </div>
 
@@ -169,34 +213,48 @@ export default function Dashboard() {
             View All
           </button>
         </div>
-        <div className="space-y-2 sm:space-y-3">
-          {upcomingBills.map((bill) => (
-            <div 
-              key={bill.id} 
-              className="card-clickable flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-neutral-50 rounded-lg hover:bg-white transition-all duration-300 gap-3 sm:gap-4 group"
-            >
-              <div className="flex items-center gap-3 sm:gap-4">
-                <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
-                  <Receipt className="w-5 h-5 text-primary group-hover:scale-110 transition-transform" />
+        {upcomingBills.length > 0 ? (
+          <div className="space-y-2 sm:space-y-3">
+            {upcomingBills.map((bill) => (
+              <div 
+                key={bill.id} 
+                className="card-clickable flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-neutral-50 rounded-lg hover:bg-white transition-all duration-300 gap-3 sm:gap-4 group"
+              >
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
+                    <Receipt className="w-5 h-5 text-primary group-hover:scale-110 transition-transform" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-medium text-neutral-800 text-sm sm:text-base truncate">{bill.category} - {bill.provider}</p>
+                    <p className="text-xs sm:text-sm text-neutral-500">Due: {bill.due_date}</p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <p className="font-medium text-neutral-800 text-sm sm:text-base truncate">{bill.name}</p>
-                  <p className="text-xs sm:text-sm text-neutral-500">Due: {bill.dueDate}</p>
+                <div className="flex items-center justify-between sm:flex-col sm:items-end gap-2">
+                  <p className="font-semibold text-neutral-800 text-base sm:text-lg">{formatCurrency(bill.amount)}</p>
+                  <span className="badge inline-block px-2 py-1 text-xs font-medium text-amber-700 bg-amber-100 rounded">
+                    Pending
+                  </span>
                 </div>
               </div>
-              <div className="flex items-center justify-between sm:flex-col sm:items-end gap-2">
-                <p className="font-semibold text-neutral-800 text-base sm:text-lg">{formatCurrency(bill.amount)}</p>
-                <span className="badge inline-block px-2 py-1 text-xs font-medium text-amber-700 bg-amber-100 rounded">
-                  Pending
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-neutral-500">No upcoming bills</div>
+        )}
       </div>
     </div>
   )
 }
 
-
-
+function getCategoryColor(category) {
+  const colors = {
+    'Electricity': '#2563EB',
+    'Water': '#3B82F6',
+    'Gas': '#60A5FA',
+    'Internet': '#93C5FD',
+    'Rent': '#DBEAFE',
+    'Groceries': '#10B981',
+    'Maintenance': '#6B7280'
+  }
+  return colors[category] || '#6B7280'
+}

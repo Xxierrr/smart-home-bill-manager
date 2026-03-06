@@ -42,20 +42,4 @@ export default {
     },
   },
   plugins: [],
-  // Performance: Purge unused CSS in production
-  purge: {
-    enabled: true,
-    content: [
-      "./index.html",
-      "./src/**/*.{js,ts,jsx,tsx}",
-    ],
-    options: {
-      safelist: [],
-    }
-  },
-  // Optimize for production
-  future: {
-    removeDeprecatedGapUtilities: true,
-    purgeLayersByDefault: true,
-  },
 }
