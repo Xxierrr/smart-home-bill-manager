@@ -3,52 +3,65 @@ import { Bell, User, LogOut } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import NotificationsPanel from '../NotificationsPanel'
+import { db } from '../../config/supabase'
 
 export default function Header({ onMenuClick }) {
-  const [userData, setUserData] = useState({
-    firstName: 'Demo',
-    lastName: 'User',
-    email: 'demo@smarthome.com'
-  })
+  const { user } = useAuth()
   const [showNotifications, setShowNotifications] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
   const { logout } = useAuth()
   const navigate = useNavigate()
 
-  useEffect(() => {
-    // Load user data from localStorage
-    const savedProfile = localStorage.getItem('userProfile')
-    if (savedProfile) {
-      const profile = JSON.parse(savedProfile)
-      setUserData(profile)
-    }
-  }, [])
+  const userEmail = user?.email || 'user@smarthome.com'
+  const userName = user?.user_metadata?.first_name 
+    ? `${user.user_metadata.first_name} ${user.user_metadata.last_name || ''}`.trim()
+    : userEmail.split('@')[0]
 
-  // Listen for storage changes (when settings are updated)
+  // Update unread count when notifications panel closes
   useEffect(() => {
-    const handleStorageChange = () => {
-      const savedProfile = localStorage.getItem('userProfile')
-      if (savedProfile) {
-        const profile = JSON.parse(savedProfile)
-        setUserData(profile)
-      }
+    if (!showNotifications) {
+      updateUnreadCount()
     }
+  }, [showNotifications])
 
-    window.addEventListener('storage', handleStorageChange)
-    window.addEventListener('userProfileUpdated', handleStorageChange)
+  const updateUnreadCount = async () => {
+    if (!user) return
     
-    return () => {
-      window.removeEventListener('storage', handleStorageChange)
-      window.removeEventListener('userProfileUpdated', handleStorageChange)
+    try {
+      const bills = await db.bills.getAll(user.id)
+      const now = new Date()
+      let count = 0
+
+      // Count overdue bills
+      count += bills.filter(b => 
+        b.status === 'pending' && new Date(b.due_date) < now
+      ).length
+
+      // Count bills due within 3 days
+      count += bills.filter(b => {
+        if (b.status !== 'pending') return false
+        const daysUntilDue = Math.floor((new Date(b.due_date) - now) / (1000 * 60 * 60 * 24))
+        return daysUntilDue >= 0 && daysUntilDue <= 3
+      }).length
+
+      setUnreadCount(count)
+    } catch (error) {
+      console.error('Error counting notifications:', error)
     }
-  }, [])
+  }
+
+  useEffect(() => {
+    updateUnreadCount()
+    // Update every minute
+    const interval = setInterval(updateUnreadCount, 60000)
+    return () => clearInterval(interval)
+  }, [user])
 
   const handleLogout = () => {
     logout()
     navigate('/login')
   }
-
-  const fullName = `${userData.firstName} ${userData.lastName}`
 
   return (
     <>
@@ -71,7 +84,11 @@ export default function Header({ onMenuClick }) {
             aria-label="Notifications"
           >
             <Bell className="w-5 h-5 sm:w-6 sm:h-6 text-neutral-600" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-xs text-white font-bold animate-pulse">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
           </button>
 
           {/* User Profile - Responsive */}
@@ -84,10 +101,10 @@ export default function Header({ onMenuClick }) {
               {/* User info - Hidden on small mobile */}
               <div className="text-right hidden md:block">
                 <p className="text-sm font-medium text-neutral-800 truncate max-w-[150px]">
-                  {fullName}
+                  {userName}
                 </p>
                 <p className="text-xs text-neutral-500 truncate max-w-[150px]">
-                  {userData.email}
+                  {userEmail}
                 </p>
               </div>
               
@@ -108,10 +125,10 @@ export default function Header({ onMenuClick }) {
                   {/* Mobile: Show user info in dropdown */}
                   <div className="md:hidden px-4 py-3 border-b border-neutral-200">
                     <p className="text-sm font-medium text-neutral-800 truncate">
-                      {fullName}
+                      {userName}
                     </p>
                     <p className="text-xs text-neutral-500 truncate">
-                      {userData.email}
+                      {userEmail}
                     </p>
                   </div>
                   

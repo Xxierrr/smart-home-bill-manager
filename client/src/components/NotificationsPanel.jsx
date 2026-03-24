@@ -1,71 +1,176 @@
-import { X, Bell, Check, AlertTriangle, Info, Trash2 } from 'lucide-react'
+import { X, Bell, Check, AlertTriangle, Info, Trash2, TrendingUp, Calendar } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { formatCurrency } from '../utils/currency'
-
-const mockNotifications = [
-  {
-    id: 1,
-    type: 'warning',
-    title: 'Bill Due Soon',
-    message: 'Electricity bill of ₹2,800 is due on Feb 25',
-    time: '2 hours ago',
-    read: false
-  },
-  {
-    id: 2,
-    type: 'success',
-    title: 'Payment Successful',
-    message: 'Rent payment of ₹8,000 has been marked as paid',
-    time: '1 day ago',
-    read: false
-  },
-  {
-    id: 3,
-    type: 'info',
-    title: 'New Insight Available',
-    message: 'You can save ₹250/month by optimizing AC usage',
-    time: '2 days ago',
-    read: true
-  },
-  {
-    id: 4,
-    type: 'warning',
-    title: 'High Water Usage',
-    message: 'Water consumption increased by 15% this month',
-    time: '3 days ago',
-    read: true
-  }
-]
+import { db } from '../config/supabase'
+import { useAuth } from '../context/AuthContext'
 
 export default function NotificationsPanel({ isOpen, onClose }) {
-  const [notifications, setNotifications] = useState(mockNotifications)
+  const { user } = useAuth()
+  const [notifications, setNotifications] = useState([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Load notifications from localStorage
-    const saved = localStorage.getItem('notifications')
-    if (saved) {
-      setNotifications(JSON.parse(saved))
+    if (isOpen && user) {
+      generateNotifications()
     }
-  }, [])
+  }, [isOpen, user])
+
+  const generateNotifications = async () => {
+    try {
+      const bills = await db.bills.getAll(user.id)
+      const generatedNotifications = []
+      const now = new Date()
+
+      // 1. Overdue bills
+      const overdueBills = bills.filter(b => 
+        b.status === 'pending' && new Date(b.due_date) < now
+      )
+      overdueBills.forEach(bill => {
+        const daysOverdue = Math.floor((now - new Date(bill.due_date)) / (1000 * 60 * 60 * 24))
+        generatedNotifications.push({
+          id: `overdue-${bill.id}`,
+          type: 'warning',
+          title: 'Overdue Bill',
+          message: `${bill.category} bill of ${formatCurrency(bill.amount)} is ${daysOverdue} day(s) overdue`,
+          time: `${daysOverdue} days ago`,
+          read: false,
+          priority: 1
+        })
+      })
+
+      // 2. Bills due soon (within 3 days)
+      const upcomingBills = bills.filter(b => {
+        if (b.status !== 'pending') return false
+        const dueDate = new Date(b.due_date)
+        const daysUntilDue = Math.floor((dueDate - now) / (1000 * 60 * 60 * 24))
+        return daysUntilDue >= 0 && daysUntilDue <= 3
+      })
+      upcomingBills.forEach(bill => {
+        const daysUntilDue = Math.floor((new Date(bill.due_date) - now) / (1000 * 60 * 60 * 24))
+        const timeText = daysUntilDue === 0 ? 'today' : daysUntilDue === 1 ? 'tomorrow' : `in ${daysUntilDue} days`
+        generatedNotifications.push({
+          id: `upcoming-${bill.id}`,
+          type: 'warning',
+          title: 'Bill Due Soon',
+          message: `${bill.category} bill of ${formatCurrency(bill.amount)} is due ${timeText}`,
+          time: timeText,
+          read: false,
+          priority: 2
+        })
+      })
+
+      // 3. Recently paid bills
+      const recentlyPaid = bills.filter(b => {
+        if (b.status !== 'paid' || !b.payment_date) return false
+        const paymentDate = new Date(b.payment_date)
+        const daysSincePaid = Math.floor((now - paymentDate) / (1000 * 60 * 60 * 24))
+        return daysSincePaid <= 7
+      })
+      recentlyPaid.forEach(bill => {
+        const daysSincePaid = Math.floor((now - new Date(bill.payment_date)) / (1000 * 60 * 60 * 24))
+        const timeText = daysSincePaid === 0 ? 'today' : daysSincePaid === 1 ? 'yesterday' : `${daysSincePaid} days ago`
+        generatedNotifications.push({
+          id: `paid-${bill.id}`,
+          type: 'success',
+          title: 'Payment Successful',
+          message: `${bill.category} payment of ${formatCurrency(bill.amount)} has been marked as paid`,
+          time: timeText,
+          read: false,
+          priority: 3
+        })
+      })
+
+      // 4. High bill alerts (20% above average)
+      const billsByCategory = {}
+      bills.forEach(bill => {
+        if (!billsByCategory[bill.category]) {
+          billsByCategory[bill.category] = []
+        }
+        billsByCategory[bill.category].push(parseFloat(bill.amount))
+      })
+
+      Object.entries(billsByCategory).forEach(([category, amounts]) => {
+        if (amounts.length < 2) return
+        const avg = amounts.reduce((sum, a) => sum + a, 0) / amounts.length
+        const latest = amounts[amounts.length - 1]
+        if (latest > avg * 1.2) {
+          const increase = ((latest - avg) / avg * 100).toFixed(0)
+          generatedNotifications.push({
+            id: `high-${category}`,
+            type: 'warning',
+            title: `High ${category} Bill`,
+            message: `Your ${category.toLowerCase()} bill is ${increase}% higher than average`,
+            time: 'Recent',
+            read: false,
+            priority: 2
+          })
+        }
+      })
+
+      // 5. Savings insights
+      if (bills.length > 0) {
+        const totalAmount = bills.reduce((sum, b) => sum + parseFloat(b.amount), 0)
+        const avgBill = totalAmount / bills.length
+        if (avgBill > 1000) {
+          generatedNotifications.push({
+            id: 'insight-savings',
+            type: 'info',
+            title: 'Savings Opportunity',
+            message: `You could save up to ${formatCurrency(avgBill * 0.15)}/month by following our smart tips`,
+            time: 'New',
+            read: false,
+            priority: 4
+          })
+        }
+      }
+
+      // Sort by priority
+      generatedNotifications.sort((a, b) => a.priority - b.priority)
+
+      // Load saved read status from localStorage
+      const savedReadStatus = JSON.parse(localStorage.getItem('notificationReadStatus') || '{}')
+      const notificationsWithReadStatus = generatedNotifications.map(n => ({
+        ...n,
+        read: savedReadStatus[n.id] || false
+      }))
+
+      setNotifications(notificationsWithReadStatus)
+    } catch (error) {
+      console.error('Error generating notifications:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const markAsRead = (id) => {
     const updated = notifications.map(n => 
       n.id === id ? { ...n, read: true } : n
     )
     setNotifications(updated)
-    localStorage.setItem('notifications', JSON.stringify(updated))
+    
+    // Save read status to localStorage
+    const readStatus = {}
+    updated.forEach(n => {
+      if (n.read) readStatus[n.id] = true
+    })
+    localStorage.setItem('notificationReadStatus', JSON.stringify(readStatus))
   }
 
   const markAllAsRead = () => {
     const updated = notifications.map(n => ({ ...n, read: true }))
     setNotifications(updated)
-    localStorage.setItem('notifications', JSON.stringify(updated))
+    
+    // Save read status to localStorage
+    const readStatus = {}
+    updated.forEach(n => {
+      readStatus[n.id] = true
+    })
+    localStorage.setItem('notificationReadStatus', JSON.stringify(readStatus))
   }
 
   const deleteNotification = (id) => {
     const updated = notifications.filter(n => n.id !== id)
     setNotifications(updated)
-    localStorage.setItem('notifications', JSON.stringify(updated))
   }
 
   const unreadCount = notifications.filter(n => !n.read).length
@@ -141,10 +246,15 @@ export default function NotificationsPanel({ isOpen, onClose }) {
 
         {/* Notifications List */}
         <div className="flex-1 overflow-y-auto">
-          {notifications.length === 0 ? (
+          {loading ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-neutral-500">Loading notifications...</div>
+            </div>
+          ) : notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center p-8">
               <Bell className="w-16 h-16 text-neutral-300 mb-4" />
               <p className="text-neutral-500">No notifications</p>
+              <p className="text-xs text-neutral-400 mt-2">Add some bills to get notifications</p>
             </div>
           ) : (
             <div className="divide-y divide-neutral-100">
