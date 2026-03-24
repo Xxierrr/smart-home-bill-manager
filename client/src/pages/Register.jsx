@@ -15,6 +15,7 @@ export default function Register() {
     agreeToTerms: false
   })
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
 
   const handleChange = (e) => {
@@ -28,6 +29,7 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    setSuccess('')
 
     // Validation
     if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
@@ -60,7 +62,16 @@ export default function Register() {
     })
     
     if (result.success) {
-      navigate('/')
+      if (result.requiresConfirmation) {
+        // Show success message and redirect to login after 3 seconds
+        setSuccess(result.message)
+        setTimeout(() => {
+          navigate('/login')
+        }, 3000)
+      } else {
+        // User is logged in immediately, go to dashboard
+        navigate('/')
+      }
     } else {
       setError(result.message)
     }
@@ -89,6 +100,12 @@ export default function Register() {
           {error && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
               {error}
+            </div>
+          )}
+          
+          {success && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+              {success}
             </div>
           )}
 

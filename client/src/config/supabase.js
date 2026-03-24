@@ -12,9 +12,10 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'YOUR_SUPABASE
 // Create Supabase client
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true
+    autoRefreshToken: true,      // Auto refresh JWT tokens
+    persistSession: true,         // Persist session in localStorage
+    detectSessionInUrl: true,     // Detect OAuth redirects
+    flowType: 'pkce'             // Use PKCE flow for security
   }
 })
 
@@ -133,7 +134,7 @@ export const db = {
   // Insights operations
   insights: {
     getAll: async (userId) => {
-      const { data, error } = await supabase
+      const { data, error} = await supabase
         .from('insights')
         .select('*')
         .eq('user_id', userId)
@@ -141,6 +142,54 @@ export const db = {
       
       if (error) throw error
       return data
+    }
+  },
+  
+  // Bill Splits operations
+  billSplits: {
+    create: async (splitData) => {
+      const { data, error } = await supabase
+        .from('bill_splits')
+        .insert([splitData])
+        .select()
+      
+      if (error) throw error
+      return data[0]
+    },
+    
+    getByBillId: async (billId) => {
+      const { data, error } = await supabase
+        .from('bill_splits')
+        .select('*')
+        .eq('bill_id', billId)
+        .single()
+      
+      if (error) {
+        if (error.code === 'PGRST116') return null // No split found
+        throw error
+      }
+      return data
+    },
+    
+    update: async (id, updates) => {
+      const { data, error } = await supabase
+        .from('bill_splits')
+        .update(updates)
+        .eq('id', id)
+        .select()
+      
+      if (error) throw error
+      return data[0]
+    },
+    
+    delete: async (billId) => {
+      const { error } = await supabase
+        .from('bill_splits')
+        .delete()
+        .eq('bill_id', billId)
+      
+      if (error) throw error
+      return true
     }
   }
 }
@@ -152,18 +201,38 @@ export const auth = {
       email,
       password,
       options: {
-        data: metadata
+        data: metadata,  // Stored in raw_user_meta_data
+        emailRedirectTo: `${window.location.origin}/auth/callback`
       }
     })
     
     if (error) throw error
-    return data
+    
+    // Check if email confirmation is required
+    const requiresConfirmation = data.user && !data.session
+    
+    return {
+      ...data,
+      requiresConfirmation
+    }
   },
   
   signIn: async (email, password) => {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
+    })
+    
+    if (error) throw error
+    return data
+  },
+  
+  signInWithGoogle: async () => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/`
+      }
     })
     
     if (error) throw error

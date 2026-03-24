@@ -73,12 +73,10 @@ SmartHome Bill Manager is a modern, scalable web application designed to give fa
 - **React Hook Form** - Form management
 
 ### Backend
-- **Node.js** - Runtime
-- **Express.js** - Web framework
-- **MongoDB** - Database
-- **Mongoose** - ODM
-- **JWT** - Authentication
-- **Multer** - File uploads
+- **Supabase** - Cloud database & authentication
+- **PostgreSQL** - Database (via Supabase)
+- **Row Level Security** - Data protection
+- **JWT** - Session tokens
 
 ## 📁 Project Structure
 
@@ -107,47 +105,50 @@ smarthome-bill-manager/
 
 ### Prerequisites
 - Node.js (v18 or higher)
-- MongoDB (v6 or higher)
+- Supabase account (free tier works)
 - npm or yarn
 
-### Installation
+### Quick Setup (5 minutes)
 
-1. Clone the repository
+1. **Disable Email Confirmation in Supabase**
+   - Go to https://supabase.com/dashboard
+   - Select project: `phvledkxkjvoqvzrylpw`
+   - Click **Authentication** → **Providers** → **Email**
+   - Toggle OFF "Confirm email"
+   - Click **Save changes**
+
+2. **Install Dependencies**
 ```bash
-git clone https://github.com/yourusername/smarthome-bill-manager.git
-cd smarthome-bill-manager
+cd client
+npm install
 ```
 
-2. Install dependencies
-```bash
-npm run install:all
-```
-
-3. Set up environment variables
-
-Create `.env` files in both client and server directories:
-
-**server/.env**
-```env
-PORT=5000
-MONGODB_URI=mongodb://localhost:27017/smarthome
-JWT_SECRET=your_jwt_secret_key
-NODE_ENV=development
-```
-
-**client/.env**
-```env
-VITE_API_URL=http://localhost:5000/api/v1
-```
-
-4. Start development servers
+3. **Start the App**
 ```bash
 npm run dev
 ```
 
-The application will be available at:
-- Frontend: http://localhost:5173
-- Backend: http://localhost:5000
+4. **Open & Test**
+   - Open http://localhost:5173
+   - Click "Create Account"
+   - Register with your email
+   - You'll be logged in immediately
+
+### How Login Data is Stored
+
+Your authentication uses **Supabase** (cloud database):
+
+- **Email & Password** → `auth.users` table (password hashed with bcrypt)
+- **Name & Profile** → `profiles` table (auto-created on signup)
+- **Session Token** → Browser localStorage (auto-refreshes, persists across page refreshes)
+
+**Security:**
+- Passwords are hashed (never stored as plain text)
+- Row Level Security (RLS) enabled
+- Users can only access their own data
+- JWT tokens with auto-refresh
+
+See `HOW_LOGIN_DATA_IS_STORED.md` for detailed explanation.
 
 ## 📚 Documentation
 

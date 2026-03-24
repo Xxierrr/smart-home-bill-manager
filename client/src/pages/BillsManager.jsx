@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Plus, Search, Filter, Receipt, Edit, Trash2, Check, X } from 'lucide-react'
+import { Plus, Search, Filter, Receipt, Edit, Trash2, Check, X, Users } from 'lucide-react'
 import { formatCurrency } from '../utils/currency'
 import { db } from '../config/supabase'
 import { useAuth } from '../context/AuthContext'
@@ -11,6 +11,16 @@ export default function BillsManager() {
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [searchTerm, setSearchTerm] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
+  const [showSplitModal, setShowSplitModal] = useState(false)
+  const [selectedBillForSplit, setSelectedBillForSplit] = useState(null)
+  const [splitType, setSplitType] = useState('equal') // 'equal' or 'custom'
+  const [splitPeople, setSplitPeople] = useState(2)
+  const [peopleData, setPeopleData] = useState([
+    { name: '', amount: 0, paid: false },
+    { name: '', amount: 0, paid: false }
+  ])
+  const [splitError, setSplitError] = useState('')
+  const [billSplits, setBillSplits] = useState({}) // Store splits by bill_id
   const [bills, setBills] = useState([])
   const [categories, setCategories] = useState(defaultCategories)
   const [showCustomCategory, setShowCustomCategory] = useState(false)
@@ -40,6 +50,16 @@ export default function BillsManager() {
     try {
       const data = await db.bills.getAll(user.id)
       setBills(data || [])
+      
+      // Load bill splits for each bill
+      const splitsMap = {}
+      for (const bill of (data || [])) {
+        const split = await db.billSplits.getByBillId(bill.id)
+        if (split) {
+          splitsMap[bill.id] = split
+        }
+      }
+      setBillSplits(splitsMap)
     } catch (error) {
       console.error('Error loading bills:', error)
       alert('Failed to load bills. Please check your Supabase connection.')
@@ -134,6 +154,141 @@ export default function BillsManager() {
     setShowCustomCategory(false)
   }
 
+  const handleOpenSplitModal = async (bill) => {
+    setSelectedBillForSplit(bill)
+    setSplitError('')
+    
+    // Load existing split if any
+    const existingSplit = billSplits[bill.id]
+    if (existingSplit) {
+      setSplitType(existingSplit.split_type)
+      setSplitPeople(existingSplit.number_of_people)
+      setPeopleData(existingSplit.people)
+    } else {
+      // Reset to defaults
+      setSplitType('equal')
+      setSplitPeople(2)
+      const equalAmount = bill.amount / 2
+      setPeopleData([
+        { name: '', amount: equalAmount, paid: false },
+        { name: '', amount: equalAmount, paid: false }
+      ])
+    }
+    
+    setShowSplitModal(true)
+  }
+
+  const handleSplitPeopleChange = (count) => {
+    const newCount = Math.max(1, Math.min(20, count))
+    setSplitPeople(newCount)
+    
+    if (splitType === 'equal') {
+      const equalAmount = selectedBillForSplit.amount / newCount
+      setPeopleData(Array(newCount).fill(null).map((_, i) => ({
+        name: peopleData[i]?.name || '',
+        amount: equalAmount,
+        paid: peopleData[i]?.paid || false
+      })))
+    } else {
+      // For custom, keep existing amounts or set to 0
+      setPeopleData(Array(newCount).fill(null).map((_, i) => ({
+        name: peopleData[i]?.name || '',
+        amount: peopleData[i]?.amount || 0,
+        paid: peopleData[i]?.paid || false
+      })))
+    }
+  }
+
+  const handleSplitTypeChange = (type) => {
+    setSplitType(type)
+    setSplitError('')
+    
+    if (type === 'equal') {
+      const equalAmount = selectedBillForSplit.amount / splitPeople
+      setPeopleData(peopleData.map(person => ({
+        ...person,
+        amount: equalAmount
+      })))
+    }
+  }
+
+  const handlePersonDataChange = (index, field, value) => {
+    const newData = [...peopleData]
+    newData[index] = { ...newData[index], [field]: value }
+    setPeopleData(newData)
+    
+    // Clear error when user makes changes
+    if (field === 'amount') {
+      setSplitError('')
+    }
+  }
+
+  const handlePersonPaidToggle = async (index) => {
+    const newData = [...peopleData]
+    newData[index].paid = !newData[index].paid
+    setPeopleData(newData)
+    
+    // Save to database
+    await handleSaveSplit()
+  }
+
+  const validateSplit = () => {
+    if (splitPeople < 1) {
+      setSplitError('Number of people must be at least 1')
+      return false
+    }
+    
+    if (splitType === 'custom') {
+      const totalSplit = peopleData.reduce((sum, person) => sum + parseFloat(person.amount || 0), 0)
+      const difference = Math.abs(totalSplit - selectedBillForSplit.amount)
+      
+      if (difference > 0.01) { // Allow 1 paisa difference for rounding
+        setSplitError(`Total split (${formatCurrency(totalSplit)}) must equal bill amount (${formatCurrency(selectedBillForSplit.amount)})`)
+        return false
+      }
+    }
+    
+    setSplitError('')
+    return true
+  }
+
+  const handleSaveSplit = async () => {
+    if (!validateSplit()) {
+      return
+    }
+    
+    try {
+      const splitData = {
+        bill_id: selectedBillForSplit.id,
+        user_id: user.id,
+        total_amount: selectedBillForSplit.amount,
+        split_type: splitType,
+        number_of_people: splitPeople,
+        people: peopleData
+      }
+      
+      const existingSplit = billSplits[selectedBillForSplit.id]
+      
+      if (existingSplit) {
+        // Update existing split
+        await db.billSplits.update(existingSplit.id, splitData)
+      } else {
+        // Create new split
+        await db.billSplits.create(splitData)
+      }
+      
+      // Reload splits
+      const updatedSplit = await db.billSplits.getByBillId(selectedBillForSplit.id)
+      setBillSplits({ ...billSplits, [selectedBillForSplit.id]: updatedSplit })
+      
+      alert('Bill split saved successfully!')
+      setShowSplitModal(false)
+    } catch (error) {
+      console.error('Error saving split:', error)
+      alert('Failed to save split. Please try again.')
+    }
+  }
+
   const allCategories = ['All', ...categories]
 
   const filteredBills = bills.filter(bill => {
@@ -167,6 +322,228 @@ export default function BillsManager() {
           Add Bill
         </button>
       </div>
+
+      {/* Split Bill Modal */}
+      {showSplitModal && selectedBillForSplit && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-neutral-200 flex items-center justify-between sticky top-0 bg-white z-10">
+              <div>
+                <h2 className="text-2xl font-bold text-neutral-800">Split Bill</h2>
+                <p className="text-sm text-neutral-500 mt-1">{selectedBillForSplit.category} - {selectedBillForSplit.provider}</p>
+              </div>
+              <button 
+                onClick={() => setShowSplitModal(false)}
+                className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+              >
+                <X className="w-6 h-6 text-neutral-600" />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              {/* Total Amount */}
+              <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-6 text-center">
+                <p className="text-sm text-neutral-600 mb-2">Total Bill Amount (Read-only)</p>
+                <p className="text-4xl font-bold text-neutral-800">{formatCurrency(selectedBillForSplit.amount)}</p>
+              </div>
+
+              {/* Split Type Selection */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-3">Split Type</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => handleSplitTypeChange('equal')}
+                    className={`p-4 rounded-xl border-2 transition-all ${
+                      splitType === 'equal'
+                        ? 'border-primary bg-primary/5 text-primary'
+                        : 'border-neutral-200 hover:border-neutral-300'
+                    }`}
+                  >
+                    <div className="font-semibold mb-1">Equal Split</div>
+                    <div className="text-sm text-neutral-500">Divide equally among all</div>
+                  </button>
+                  <button
+                    onClick={() => handleSplitTypeChange('custom')}
+                    className={`p-4 rounded-xl border-2 transition-all ${
+                      splitType === 'custom'
+                        ? 'border-secondary bg-secondary/5 text-secondary'
+                        : 'border-neutral-200 hover:border-neutral-300'
+                    }`}
+                  >
+                    <div className="font-semibold mb-1">Custom Split</div>
+                    <div className="text-sm text-neutral-500">Set custom amounts</div>
+                  </button>
+                </div>
+              </div>
+
+              {/* Number of People */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-3">Number of People</label>
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={() => handleSplitPeopleChange(splitPeople - 1)}
+                    className="w-10 h-10 rounded-lg bg-neutral-100 hover:bg-neutral-200 flex items-center justify-center font-bold text-neutral-700 transition-colors"
+                  >
+                    -
+                  </button>
+                  <input
+                    type="number"
+                    value={splitPeople}
+                    onChange={(e) => handleSplitPeopleChange(parseInt(e.target.value) || 1)}
+                    min="1"
+                    max="20"
+                    className="input-field text-center text-xl font-bold w-20"
+                  />
+                  <button
+                    onClick={() => handleSplitPeopleChange(splitPeople + 1)}
+                    className="w-10 h-10 rounded-lg bg-neutral-100 hover:bg-neutral-200 flex items-center justify-center font-bold text-neutral-700 transition-colors"
+                  >
+                    +
+                  </button>
+                  {splitType === 'equal' && (
+                    <div className="flex-1 text-right">
+                      <p className="text-sm text-neutral-500">Per Person</p>
+                      <p className="text-2xl font-bold text-secondary">{formatCurrency(selectedBillForSplit.amount / splitPeople)}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Error Message */}
+              {splitError && (
+                <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+                  {splitError}
+                </div>
+              )}
+
+              {/* People Details */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-3">People Details</label>
+                <div className="space-y-3">
+                  {peopleData.map((person, index) => (
+                    <div key={index} className="bg-neutral-50 rounded-xl p-4">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary flex-shrink-0">
+                          {index + 1}
+                        </div>
+                        <input
+                          type="text"
+                          value={person.name}
+                          onChange={(e) => handlePersonDataChange(index, 'name', e.target.value)}
+                          placeholder={`Person ${index + 1} name (optional)`}
+                          className="input-field flex-1"
+                        />
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1">
+                          <label className="block text-xs text-neutral-500 mb-1">Amount</label>
+                          <input
+                            type="number"
+                            value={person.amount}
+                            onChange={(e) => handlePersonDataChange(index, 'amount', parseFloat(e.target.value) || 0)}
+                            disabled={splitType === 'equal'}
+                            placeholder="0.00"
+                            step="0.01"
+                            className={`input-field ${splitType === 'equal' ? 'bg-neutral-100 cursor-not-allowed' : ''}`}
+                          />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={person.paid}
+                              onChange={() => handlePersonPaidToggle(index)}
+                              className="w-5 h-5 text-secondary border-neutral-300 rounded focus:ring-secondary"
+                            />
+                            <span className="text-sm text-neutral-600">Paid</span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Split Summary */}
+              <div className="bg-neutral-50 rounded-xl p-6">
+                <h3 className="font-semibold text-neutral-800 mb-4 flex items-center gap-2">
+                  <Users className="w-5 h-5" />
+                  Split Summary
+                </h3>
+                <div className="space-y-3">
+                  {peopleData.map((person, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <span className="font-medium text-neutral-700">
+                            {person.name || `Person ${index + 1}`}
+                          </span>
+                          {person.paid && (
+                            <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-secondary bg-secondary/10 rounded">
+                              <Check className="w-3 h-3" />
+                              Paid
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <span className="text-lg font-bold text-neutral-800">
+                        {formatCurrency(person.amount)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Validation Summary */}
+              <div className="border-t border-neutral-200 pt-4">
+                <div className="flex justify-between items-center text-sm text-neutral-600 mb-2">
+                  <span>Total Amount:</span>
+                  <span className="font-semibold">{formatCurrency(selectedBillForSplit.amount)}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm text-neutral-600 mb-2">
+                  <span>Total Split:</span>
+                  <span className={`font-semibold ${
+                    Math.abs(peopleData.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0) - selectedBillForSplit.amount) > 0.01
+                      ? 'text-red-600'
+                      : 'text-secondary'
+                  }`}>
+                    {formatCurrency(peopleData.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0))}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-sm text-neutral-600 mb-2">
+                  <span>Number of People:</span>
+                  <span className="font-semibold">{splitPeople}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm text-neutral-600 mb-2">
+                  <span>Paid:</span>
+                  <span className="font-semibold text-secondary">
+                    {peopleData.filter(p => p.paid).length} / {splitPeople}
+                  </span>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <button 
+                  onClick={handleSaveSplit}
+                  className="btn-primary flex-1"
+                >
+                  Save Split
+                </button>
+                <button 
+                  onClick={() => setShowSplitModal(false)}
+                  className="btn-secondary flex-1"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add Bill Modal */}
       {showAddModal && (
@@ -362,6 +739,11 @@ export default function BillsManager() {
                 <div className="text-right">
                   <p className="text-2xl font-bold text-neutral-800">{formatCurrency(bill.amount)}</p>
                   <p className="text-sm text-neutral-500">Due: {bill.due_date}</p>
+                  {billSplits[bill.id] && (
+                    <p className="text-xs text-secondary font-medium mt-1">
+                      Split among {billSplits[bill.id].number_of_people} people
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -379,11 +761,22 @@ export default function BillsManager() {
 
                 <div className="flex items-center gap-2">
                   <button 
+                    onClick={() => handleOpenSplitModal(bill)}
+                    className="p-2 hover:bg-secondary/10 rounded-lg transition-colors"
+                    title="Split Bill"
+                  >
+                    <Users className="w-5 h-5 text-secondary" />
+                  </button>
+                  <button 
                     onClick={() => handleMarkAsPaid(bill.id)}
                     className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
-                    title="Edit"
+                    title="Mark as Paid"
                   >
-                    <Edit className="w-5 h-5 text-neutral-600" />
+                    {bill.status === 'paid' ? (
+                      <Check className="w-5 h-5 text-secondary" />
+                    ) : (
+                      <Edit className="w-5 h-5 text-neutral-600" />
+                    )}
                   </button>
                   <button 
                     onClick={() => handleDeleteBill(bill.id)}

@@ -54,12 +54,35 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const data = await auth.signIn(email, password)
+      
+      // Check if user exists but email not confirmed
+      if (!data.user) {
+        return { 
+          success: false, 
+          message: 'Please check your email and confirm your account before logging in.' 
+        }
+      }
+      
       setIsAuthenticated(true)
       setUser(data.user)
       return { success: true }
     } catch (error) {
       console.error('Login error:', error)
-      return { success: false, message: error.message || 'Invalid email or password' }
+      
+      // Better error messages
+      let errorMessage = 'Invalid email or password'
+      
+      if (error.message?.includes('Invalid login credentials')) {
+        errorMessage = 'Invalid email or password. Please check your credentials.'
+      } else if (error.message?.includes('Email not confirmed')) {
+        errorMessage = 'Please confirm your email address before logging in. Check your inbox.'
+      } else if (error.message?.includes('User not found')) {
+        errorMessage = 'No account found with this email. Please register first.'
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+      
+      return { success: false, message: errorMessage }
     }
   }
 
@@ -71,12 +94,51 @@ export const AuthProvider = ({ children }) => {
         last_name: lastName
       })
       
-      setIsAuthenticated(true)
-      setUser(data.user)
-      return { success: true }
+      // Check if email confirmation is required
+      if (data.user && !data.session) {
+        return { 
+          success: true, 
+          requiresConfirmation: true,
+          message: 'Registration successful! Please check your email to confirm your account before logging in.' 
+        }
+      }
+      
+      // If no confirmation required, user is logged in immediately
+      if (data.user && data.session) {
+        setIsAuthenticated(true)
+        setUser(data.user)
+        return { success: true, requiresConfirmation: false }
+      }
+      
+      return { success: false, message: 'Registration failed. Please try again.' }
     } catch (error) {
       console.error('Registration error:', error)
-      return { success: false, message: error.message || 'Registration failed' }
+      
+      // Better error messages
+      let errorMessage = 'Registration failed'
+      
+      if (error.message?.includes('already registered')) {
+        errorMessage = 'This email is already registered. Please login instead.'
+      } else if (error.message?.includes('Password should be')) {
+        errorMessage = 'Password must be at least 6 characters long.'
+      } else if (error.message?.includes('Invalid email')) {
+        errorMessage = 'Please enter a valid email address.'
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+      
+      return { success: false, message: errorMessage }
+    }
+  }
+
+  const loginWithGoogle = async () => {
+    try {
+      await auth.signInWithGoogle()
+      // User will be redirected to Google, then back to app
+      return { success: true }
+    } catch (error) {
+      console.error('Google login error:', error)
+      return { success: false, message: error.message || 'Google login failed' }
     }
   }
 
@@ -91,7 +153,7 @@ export const AuthProvider = ({ children }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, register, logout, loading }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, login, register, loginWithGoogle, logout, loading }}>
       {children}
     </AuthContext.Provider>
   )
