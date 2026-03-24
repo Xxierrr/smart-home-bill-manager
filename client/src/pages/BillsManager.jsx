@@ -307,103 +307,105 @@ export default function BillsManager() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header - Responsive */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-neutral-800">Bills Manager</h1>
-          <p className="text-neutral-500 mt-1">Manage all your household bills</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-neutral-800">Bills Manager</h1>
+          <p className="text-sm sm:text-base text-neutral-500 mt-1">Manage all your household bills</p>
         </div>
         <button 
           onClick={() => setShowAddModal(true)}
-          className="btn-primary flex items-center gap-2"
+          className="btn-primary flex items-center justify-center gap-2 touch-manipulation"
         >
           <Plus className="w-5 h-5" />
           Add Bill
         </button>
       </div>
 
-      {/* Split Bill Modal */}
+      {/* Split Bill Modal - Responsive */}
       {showSplitModal && selectedBillForSplit && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-neutral-200 flex items-center justify-between sticky top-0 bg-white z-10">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-white rounded-xl max-w-3xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
+            <div className="p-4 sm:p-6 border-b border-neutral-200 flex items-center justify-between sticky top-0 bg-white z-10">
               <div>
-                <h2 className="text-2xl font-bold text-neutral-800">Split Bill</h2>
-                <p className="text-sm text-neutral-500 mt-1">{selectedBillForSplit.category} - {selectedBillForSplit.provider}</p>
+                <h2 className="text-xl sm:text-2xl font-bold text-neutral-800">Split Bill</h2>
+                <p className="text-xs sm:text-sm text-neutral-500 mt-1">{selectedBillForSplit.category} - {selectedBillForSplit.provider}</p>
               </div>
               <button 
                 onClick={() => setShowSplitModal(false)}
-                className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-neutral-100 rounded-lg transition-colors touch-manipulation"
               >
-                <X className="w-6 h-6 text-neutral-600" />
+                <X className="w-5 h-5 sm:w-6 sm:h-6 text-neutral-600" />
               </button>
             </div>
             
-            <div className="p-6 space-y-6">
-              {/* Total Amount */}
-              <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-6 text-center">
-                <p className="text-sm text-neutral-600 mb-2">Total Bill Amount (Read-only)</p>
-                <p className="text-4xl font-bold text-neutral-800">{formatCurrency(selectedBillForSplit.amount)}</p>
+            <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+              {/* Total Amount - Responsive */}
+              <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-4 sm:p-6 text-center">
+                <p className="text-xs sm:text-sm text-neutral-600 mb-2">Total Bill Amount (Read-only)</p>
+                <p className="text-2xl sm:text-4xl font-bold text-neutral-800">{formatCurrency(selectedBillForSplit.amount)}</p>
               </div>
 
-              {/* Split Type Selection */}
+              {/* Split Type Selection - Responsive */}
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-3">Split Type</label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button
                     onClick={() => handleSplitTypeChange('equal')}
-                    className={`p-4 rounded-xl border-2 transition-all ${
+                    className={`p-3 sm:p-4 rounded-xl border-2 transition-all touch-manipulation ${
                       splitType === 'equal'
                         ? 'border-primary bg-primary/5 text-primary'
                         : 'border-neutral-200 hover:border-neutral-300'
                     }`}
                   >
-                    <div className="font-semibold mb-1">Equal Split</div>
-                    <div className="text-sm text-neutral-500">Divide equally among all</div>
+                    <div className="font-semibold mb-1 text-sm sm:text-base">Equal Split</div>
+                    <div className="text-xs sm:text-sm text-neutral-500">Divide equally among all</div>
                   </button>
                   <button
                     onClick={() => handleSplitTypeChange('custom')}
-                    className={`p-4 rounded-xl border-2 transition-all ${
+                    className={`p-3 sm:p-4 rounded-xl border-2 transition-all touch-manipulation ${
                       splitType === 'custom'
                         ? 'border-secondary bg-secondary/5 text-secondary'
                         : 'border-neutral-200 hover:border-neutral-300'
                     }`}
                   >
-                    <div className="font-semibold mb-1">Custom Split</div>
-                    <div className="text-sm text-neutral-500">Set custom amounts</div>
+                    <div className="font-semibold mb-1 text-sm sm:text-base">Custom Split</div>
+                    <div className="text-xs sm:text-sm text-neutral-500">Set custom amounts</div>
                   </button>
                 </div>
               </div>
 
-              {/* Number of People */}
+              {/* Number of People - Responsive */}
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-3">Number of People</label>
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={() => handleSplitPeopleChange(splitPeople - 1)}
-                    className="w-10 h-10 rounded-lg bg-neutral-100 hover:bg-neutral-200 flex items-center justify-center font-bold text-neutral-700 transition-colors"
-                  >
-                    -
-                  </button>
-                  <input
-                    type="number"
-                    value={splitPeople}
-                    onChange={(e) => handleSplitPeopleChange(parseInt(e.target.value) || 1)}
-                    min="1"
-                    max="20"
-                    className="input-field text-center text-xl font-bold w-20"
-                  />
-                  <button
-                    onClick={() => handleSplitPeopleChange(splitPeople + 1)}
-                    className="w-10 h-10 rounded-lg bg-neutral-100 hover:bg-neutral-200 flex items-center justify-center font-bold text-neutral-700 transition-colors"
-                  >
-                    +
-                  </button>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <button
+                      onClick={() => handleSplitPeopleChange(splitPeople - 1)}
+                      className="w-10 h-10 rounded-lg bg-neutral-100 hover:bg-neutral-200 flex items-center justify-center font-bold text-neutral-700 transition-colors touch-manipulation"
+                    >
+                      -
+                    </button>
+                    <input
+                      type="number"
+                      value={splitPeople}
+                      onChange={(e) => handleSplitPeopleChange(parseInt(e.target.value) || 1)}
+                      min="1"
+                      max="20"
+                      className="input-field text-center text-lg sm:text-xl font-bold w-20"
+                    />
+                    <button
+                      onClick={() => handleSplitPeopleChange(splitPeople + 1)}
+                      className="w-10 h-10 rounded-lg bg-neutral-100 hover:bg-neutral-200 flex items-center justify-center font-bold text-neutral-700 transition-colors touch-manipulation"
+                    >
+                      +
+                    </button>
+                  </div>
                   {splitType === 'equal' && (
-                    <div className="flex-1 text-right">
-                      <p className="text-sm text-neutral-500">Per Person</p>
-                      <p className="text-2xl font-bold text-secondary">{formatCurrency(selectedBillForSplit.amount / splitPeople)}</p>
+                    <div className="flex-1 text-center sm:text-right bg-secondary/5 rounded-lg p-3">
+                      <p className="text-xs sm:text-sm text-neutral-500">Per Person</p>
+                      <p className="text-xl sm:text-2xl font-bold text-secondary">{formatCurrency(selectedBillForSplit.amount / splitPeople)}</p>
                     </div>
                   )}
                 </div>
@@ -416,14 +418,14 @@ export default function BillsManager() {
                 </div>
               )}
 
-              {/* People Details */}
+              {/* People Details - Responsive */}
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-3">People Details</label>
                 <div className="space-y-3">
                   {peopleData.map((person, index) => (
-                    <div key={index} className="bg-neutral-50 rounded-xl p-4">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary flex-shrink-0">
+                    <div key={index} className="bg-neutral-50 rounded-xl p-3 sm:p-4">
+                      <div className="flex items-center gap-2 sm:gap-3 mb-3">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary flex-shrink-0 text-sm sm:text-base">
                           {index + 1}
                         </div>
                         <input
@@ -431,10 +433,10 @@ export default function BillsManager() {
                           value={person.name}
                           onChange={(e) => handlePersonDataChange(index, 'name', e.target.value)}
                           placeholder={`Person ${index + 1} name (optional)`}
-                          className="input-field flex-1"
+                          className="input-field flex-1 text-sm sm:text-base"
                         />
                       </div>
-                      <div className="flex items-center gap-3">
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                         <div className="flex-1">
                           <label className="block text-xs text-neutral-500 mb-1">Amount</label>
                           <input
@@ -444,11 +446,11 @@ export default function BillsManager() {
                             disabled={splitType === 'equal'}
                             placeholder="0.00"
                             step="0.01"
-                            className={`input-field ${splitType === 'equal' ? 'bg-neutral-100 cursor-not-allowed' : ''}`}
+                            className={`input-field text-sm sm:text-base ${splitType === 'equal' ? 'bg-neutral-100 cursor-not-allowed' : ''}`}
                           />
                         </div>
-                        <div className="flex items-center gap-2">
-                          <label className="flex items-center gap-2 cursor-pointer">
+                        <div className="flex items-center gap-2 sm:self-end sm:pb-2">
+                          <label className="flex items-center gap-2 cursor-pointer touch-manipulation">
                             <input
                               type="checkbox"
                               checked={person.paid}
@@ -525,17 +527,17 @@ export default function BillsManager() {
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex gap-3">
+              {/* Action Buttons - Responsive */}
+              <div className="flex flex-col sm:flex-row gap-3">
                 <button 
                   onClick={handleSaveSplit}
-                  className="btn-primary flex-1"
+                  className="btn-primary flex-1 touch-manipulation"
                 >
                   Save Split
                 </button>
                 <button 
                   onClick={() => setShowSplitModal(false)}
-                  className="btn-secondary flex-1"
+                  className="btn-secondary flex-1 touch-manipulation"
                 >
                   Cancel
                 </button>
@@ -545,21 +547,21 @@ export default function BillsManager() {
         </div>
       )}
 
-      {/* Add Bill Modal */}
+      {/* Add Bill Modal - Responsive */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-md w-full">
-            <div className="p-6 border-b border-neutral-200 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-neutral-800">Add New Bill</h2>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-white rounded-xl max-w-md w-full max-h-[95vh] overflow-y-auto">
+            <div className="p-4 sm:p-6 border-b border-neutral-200 flex items-center justify-between sticky top-0 bg-white z-10">
+              <h2 className="text-xl sm:text-2xl font-bold text-neutral-800">Add New Bill</h2>
               <button 
                 onClick={() => setShowAddModal(false)}
-                className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-neutral-100 rounded-lg transition-colors touch-manipulation"
               >
-                <X className="w-6 h-6 text-neutral-600" />
+                <X className="w-5 h-5 sm:w-6 sm:h-6 text-neutral-600" />
               </button>
             </div>
             
-            <div className="p-6 space-y-4">
+            <div className="p-4 sm:p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">Category *</label>
                 {!showCustomCategory ? (
@@ -663,16 +665,16 @@ export default function BillsManager() {
                 </select>
               </div>
 
-              <div className="flex gap-3 pt-4">
+              <div className="flex flex-col sm:flex-row gap-3 pt-4">
                 <button 
                   onClick={handleAddBill}
-                  className="btn-primary flex-1"
+                  className="btn-primary flex-1 touch-manipulation"
                 >
                   Add Bill
                 </button>
                 <button 
                   onClick={() => setShowAddModal(false)}
-                  className="btn-secondary flex-1"
+                  className="btn-secondary flex-1 touch-manipulation"
                 >
                   Cancel
                 </button>
@@ -716,76 +718,72 @@ export default function BillsManager() {
         </div>
       </div>
 
-      {/* Bills List */}
-      <div className="grid grid-cols-1 gap-4">
+      {/* Bills List - Responsive */}
+      <div className="grid grid-cols-1 gap-3 sm:gap-4">
         {filteredBills.map((bill) => (
           <div key={bill.id} className="card hover:shadow-lg transition-shadow">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+            <div className="flex flex-col gap-4">
+              {/* Top section - Bill info */}
+              <div className="flex items-start gap-3 sm:gap-4">
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center flex-shrink-0 ${
                   bill.status === 'paid' ? 'bg-secondary/10' : 'bg-primary/10'
                 }`}>
-                  <Receipt className={`w-6 h-6 ${
+                  <Receipt className={`w-5 h-5 sm:w-6 sm:h-6 ${
                     bill.status === 'paid' ? 'text-secondary' : 'text-primary'
                   }`} />
                 </div>
-                <div>
-                  <h3 className="font-semibold text-neutral-800">{bill.category}</h3>
-                  <p className="text-sm text-neutral-500">{bill.provider}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-6">
-                <div className="text-right">
-                  <p className="text-2xl font-bold text-neutral-800">{formatCurrency(bill.amount)}</p>
-                  <p className="text-sm text-neutral-500">Due: {bill.due_date}</p>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-neutral-800 text-sm sm:text-base truncate">{bill.category}</h3>
+                  <p className="text-xs sm:text-sm text-neutral-500 truncate">{bill.provider}</p>
+                  <p className="text-xs sm:text-sm text-neutral-500 mt-1">Due: {bill.due_date}</p>
                   {billSplits[bill.id] && (
                     <p className="text-xs text-secondary font-medium mt-1">
                       Split among {billSplits[bill.id].number_of_people} people
                     </p>
                   )}
                 </div>
-
-                <div className="flex items-center gap-2">
+                <div className="text-right">
+                  <p className="text-lg sm:text-2xl font-bold text-neutral-800">{formatCurrency(bill.amount)}</p>
                   {bill.status === 'paid' ? (
-                    <span className="inline-flex items-center gap-1 px-3 py-1 text-sm font-medium text-secondary bg-secondary/10 rounded-lg">
-                      <Check className="w-4 h-4" />
+                    <span className="inline-flex items-center gap-1 px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium text-secondary bg-secondary/10 rounded-lg mt-2">
+                      <Check className="w-3 h-3 sm:w-4 sm:h-4" />
                       Paid
                     </span>
                   ) : (
-                    <span className="px-3 py-1 text-sm font-medium text-amber-700 bg-amber-100 rounded-lg">
+                    <span className="inline-block px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium text-amber-700 bg-amber-100 rounded-lg mt-2">
                       Pending
                     </span>
                   )}
                 </div>
+              </div>
 
-                <div className="flex items-center gap-2">
-                  <button 
-                    onClick={() => handleOpenSplitModal(bill)}
-                    className="p-2 hover:bg-secondary/10 rounded-lg transition-colors"
-                    title="Split Bill"
-                  >
-                    <Users className="w-5 h-5 text-secondary" />
-                  </button>
-                  <button 
-                    onClick={() => handleMarkAsPaid(bill.id)}
-                    className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
-                    title="Mark as Paid"
-                  >
-                    {bill.status === 'paid' ? (
-                      <Check className="w-5 h-5 text-secondary" />
-                    ) : (
-                      <Edit className="w-5 h-5 text-neutral-600" />
-                    )}
-                  </button>
-                  <button 
-                    onClick={() => handleDeleteBill(bill.id)}
-                    className="p-2 hover:bg-red-50 rounded-lg transition-colors"
-                    title="Delete"
-                  >
-                    <Trash2 className="w-5 h-5 text-red-500" />
-                  </button>
-                </div>
+              {/* Bottom section - Actions */}
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-neutral-100">
+                <button 
+                  onClick={() => handleOpenSplitModal(bill)}
+                  className="p-2 hover:bg-secondary/10 rounded-lg transition-colors touch-manipulation"
+                  title="Split Bill"
+                >
+                  <Users className="w-5 h-5 text-secondary" />
+                </button>
+                <button 
+                  onClick={() => handleMarkAsPaid(bill.id)}
+                  className="p-2 hover:bg-neutral-100 rounded-lg transition-colors touch-manipulation"
+                  title="Mark as Paid"
+                >
+                  {bill.status === 'paid' ? (
+                    <Check className="w-5 h-5 text-secondary" />
+                  ) : (
+                    <Edit className="w-5 h-5 text-neutral-600" />
+                  )}
+                </button>
+                <button 
+                  onClick={() => handleDeleteBill(bill.id)}
+                  className="p-2 hover:bg-red-50 rounded-lg transition-colors touch-manipulation"
+                  title="Delete"
+                >
+                  <Trash2 className="w-5 h-5 text-red-500" />
+                </button>
               </div>
             </div>
           </div>

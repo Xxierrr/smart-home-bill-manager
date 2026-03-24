@@ -1159,3 +1159,55 @@ h3 {
     scroll-behavior: auto !important;
   }
 }
+
+/* ============================================
+   RESPONSIVE UTILITIES
+   ============================================ */
+
+/* Icon buttons - Touch-friendly */
+.icon-btn {
+  @apply p-2 hover:bg-neutral-100 rounded-lg transition-colors;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Touch manipulation for better mobile UX */
+.touch-manipulation {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Responsive text sizes */
+@media (max-width: 640px) {
+  .btn-primary, .btn-secondary {
+    @apply text-sm py-2.5 px-4;
+  }
+  
+  .card {
+    @apply p-4;
+  }
+  
+  h1 {
+    @apply text-2xl;
+  }
+  
+  h2 {
+    @apply text-xl;
+  }
+}
+
+/* Prevent text selection on buttons for better mobile UX */
+button {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Improve scrolling on mobile */
+@media (max-width: 768px) {
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+}
