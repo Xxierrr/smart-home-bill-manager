@@ -17,16 +17,27 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Check current session
+    // Check current session with timeout
     const checkSession = async () => {
       try {
-        const currentUser = await auth.getCurrentUser()
+        // Add timeout to prevent infinite loading
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Session check timeout')), 5000)
+        )
+        
+        const sessionPromise = auth.getCurrentUser()
+        
+        const currentUser = await Promise.race([sessionPromise, timeoutPromise])
+        
         if (currentUser) {
           setIsAuthenticated(true)
           setUser(currentUser)
         }
       } catch (error) {
         console.error('Session check error:', error)
+        // Even on error, stop loading to show login page
+        setIsAuthenticated(false)
+        setUser(null)
       } finally {
         setLoading(false)
       }
@@ -36,6 +47,7 @@ export const AuthProvider = ({ children }) => {
 
     // Listen for auth changes
     const { data: { subscription } } = auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event, session?.user?.email)
       if (session?.user) {
         setIsAuthenticated(true)
         setUser(session.user)
