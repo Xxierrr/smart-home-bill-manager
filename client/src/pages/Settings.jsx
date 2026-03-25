@@ -115,7 +115,7 @@ export default function Settings() {
   }
 
   const handleChangePassword = async () => {
-    if (!passwordData.current || !passwordData.new || !passwordData.confirm) {
+    if (!passwordData.new || !passwordData.confirm) {
       setMessage('❌ Please fill in all password fields')
       setTimeout(() => setMessage(''), 3000)
       return
@@ -133,8 +133,13 @@ export default function Settings() {
       return
     }
 
+    setLoading(true)
+    setMessage('')
+
     try {
-      const { error } = await supabase.auth.updateUser({
+      // Supabase doesn't require current password verification for updateUser
+      // It uses the current session token for authentication
+      const { data, error } = await supabase.auth.updateUser({
         password: passwordData.new
       })
 
@@ -146,8 +151,10 @@ export default function Settings() {
       setTimeout(() => setMessage(''), 3000)
     } catch (error) {
       console.error('Error changing password:', error)
-      setMessage('❌ ' + (error.message || 'Failed to change password'))
-      setTimeout(() => setMessage(''), 3000)
+      setMessage('❌ ' + (error.message || 'Failed to change password. Please try again.'))
+      setTimeout(() => setMessage(''), 5000)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -293,15 +300,12 @@ export default function Settings() {
             </button>
           ) : (
             <div className="space-y-4 p-4 bg-neutral-50 rounded-lg">
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">Current Password</label>
-                <input 
-                  type="password"
-                  value={passwordData.current}
-                  onChange={(e) => setPasswordData(prev => ({ ...prev, current: e.target.value }))}
-                  className="input-field"
-                  placeholder="Enter current password"
-                />
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
+                <p className="font-medium mb-1">Password Requirements:</p>
+                <ul className="list-disc list-inside space-y-1 text-xs">
+                  <li>At least 6 characters long</li>
+                  <li>Use a strong, unique password</li>
+                </ul>
               </div>
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">New Password</label>
@@ -310,7 +314,7 @@ export default function Settings() {
                   value={passwordData.new}
                   onChange={(e) => setPasswordData(prev => ({ ...prev, new: e.target.value }))}
                   className="input-field"
-                  placeholder="Enter new password"
+                  placeholder="Enter new password (min 6 characters)"
                 />
               </div>
               <div>
@@ -326,9 +330,10 @@ export default function Settings() {
               <div className="flex gap-3">
                 <button 
                   onClick={handleChangePassword}
-                  className="btn-primary"
+                  disabled={loading}
+                  className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Update Password
+                  {loading ? 'Updating...' : 'Update Password'}
                 </button>
                 <button 
                   onClick={() => {
