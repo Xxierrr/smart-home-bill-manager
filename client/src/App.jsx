@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext'
 import MainLayout from './components/layout/MainLayout'
 
 // Performance: Lazy load route components for code splitting
+const Landing = lazy(() => import('./pages/Landing'))
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const BillsManager = lazy(() => import('./pages/BillsManager'))
 const Analytics = lazy(() => import('./pages/Analytics'))
@@ -35,9 +36,12 @@ function AppRoutes() {
   return (
     <Suspense fallback={<LoadingFallback />}>
       <Routes>
-        <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/" replace />} />
-        <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/" replace />} />
+        {/* Public Routes */}
+        <Route path="/" element={!isAuthenticated ? <Landing /> : <Navigate to="/dashboard" replace />} />
+        <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/dashboard" replace />} />
+        <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/dashboard" replace />} />
         
+        {/* Protected Routes */}
         <Route
           path="/*"
           element={
@@ -45,7 +49,7 @@ function AppRoutes() {
               <MainLayout>
                 <Suspense fallback={<LoadingFallback />}>
                   <Routes>
-                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/bills" element={<BillsManager />} />
                     <Route path="/analytics" element={<Analytics />} />
                     <Route path="/insights" element={<SmartInsights />} />
@@ -55,7 +59,7 @@ function AppRoutes() {
                 </Suspense>
               </MainLayout>
             ) : (
-              <Navigate to="/login" replace />
+              <Navigate to="/" replace />
             )
           }
         />

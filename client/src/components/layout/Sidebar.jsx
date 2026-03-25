@@ -9,7 +9,7 @@ import {
 } from 'lucide-react'
 
 const menuItems = [
-  { path: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/bills', label: 'Bills Manager', icon: Receipt },
   { path: '/analytics', label: 'Analytics', icon: BarChart3 },
   { path: '/insights', label: 'Smart Insights', icon: Lightbulb },
