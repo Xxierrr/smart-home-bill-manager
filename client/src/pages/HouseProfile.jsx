@@ -4,28 +4,21 @@ import { formatCurrency } from '../utils/currency'
 import { db } from '../config/supabase'
 import { useAuth } from '../context/AuthContext'
 
-const appliances = [
-  { id: 1, name: 'Air Conditioner', category: 'Cooling', wattage: 3500, hours: 8, cost: 2520 },
-  { id: 2, name: 'Refrigerator', category: 'Kitchen', wattage: 150, hours: 24, cost: 810 },
-  { id: 3, name: 'Washing Machine', category: 'Laundry', wattage: 500, hours: 2, cost: 300 },
-  { id: 4, name: 'Water Heater', category: 'Heating', wattage: 4000, hours: 3, cost: 1080 },
-  { id: 5, name: 'LED Lights (10)', category: 'Lighting', wattage: 100, hours: 6, cost: 180 },
-]
-
 export default function HouseProfile() {
   const { user } = useAuth()
   const [showEditModal, setShowEditModal] = useState(false)
   const [loading, setLoading] = useState(true)
   const [household, setHousehold] = useState(null)
+  const [appliances, setAppliances] = useState([])
   const [houseData, setHouseData] = useState({
-    name: 'My Home',
-    house_type: 'Apartment',
-    residents: 4,
-    rooms: 3,
-    address: '123 MG Road, Apt 4B',
-    city: 'Bangalore',
-    state: 'Karnataka',
-    postal_code: '560001'
+    name: '',
+    house_type: '',
+    residents: '',
+    rooms: '',
+    address: '',
+    city: '',
+    state: '',
+    postal_code: ''
   })
 
   useEffect(() => {
@@ -40,13 +33,13 @@ export default function HouseProfile() {
       if (data) {
         setHousehold(data)
         setHouseData({
-          name: data.name || 'My Home',
-          house_type: data.house_type || 'Apartment',
-          residents: data.residents || 4,
-          rooms: data.rooms || 3,
+          name: data.name || '',
+          house_type: data.house_type || '',
+          residents: data.residents || '',
+          rooms: data.rooms || '',
           address: data.address || '',
-          city: data.city || 'Bangalore',
-          state: data.state || 'Karnataka',
+          city: data.city || '',
+          state: data.state || '',
           postal_code: data.postal_code || ''
         })
       }
@@ -241,7 +234,7 @@ export default function HouseProfile() {
             </div>
             <span className="text-sm text-neutral-500">House Type</span>
           </div>
-          <p className="text-xl font-semibold text-neutral-800">{houseData.house_type}</p>
+          <p className="text-xl font-semibold text-neutral-800">{houseData.house_type || 'Not set'}</p>
         </div>
 
         <div className="card">
@@ -251,7 +244,7 @@ export default function HouseProfile() {
             </div>
             <span className="text-sm text-neutral-500">Residents</span>
           </div>
-          <p className="text-xl font-semibold text-neutral-800">{houseData.residents} People</p>
+          <p className="text-xl font-semibold text-neutral-800">{houseData.residents ? `${houseData.residents} People` : 'Not set'}</p>
         </div>
 
         <div className="card">
@@ -261,7 +254,7 @@ export default function HouseProfile() {
             </div>
             <span className="text-sm text-neutral-500">Rooms</span>
           </div>
-          <p className="text-xl font-semibold text-neutral-800">{houseData.rooms} Bedrooms</p>
+          <p className="text-xl font-semibold text-neutral-800">{houseData.rooms ? `${houseData.rooms} Bedrooms` : 'Not set'}</p>
         </div>
 
         <div className="card">
@@ -271,32 +264,42 @@ export default function HouseProfile() {
             </div>
             <span className="text-sm text-neutral-500">Location</span>
           </div>
-          <p className="text-xl font-semibold text-neutral-800">{houseData.city}</p>
+          <p className="text-xl font-semibold text-neutral-800">{houseData.city || 'Not set'}</p>
         </div>
       </div>
 
       {/* Address */}
-      <div className="card">
-        <h3 className="text-lg font-semibold text-neutral-800 mb-4">Address</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="text-sm text-neutral-500">Street Address</label>
-            <p className="text-neutral-800 font-medium mt-1">{houseData.address}</p>
-          </div>
-          <div>
-            <label className="text-sm text-neutral-500">City</label>
-            <p className="text-neutral-800 font-medium mt-1">{houseData.city}</p>
-          </div>
-          <div>
-            <label className="text-sm text-neutral-500">State</label>
-            <p className="text-neutral-800 font-medium mt-1">{houseData.state}</p>
-          </div>
-          <div>
-            <label className="text-sm text-neutral-500">ZIP Code</label>
-            <p className="text-neutral-800 font-medium mt-1">{houseData.postal_code}</p>
+      {(houseData.address || houseData.city || houseData.state || houseData.postal_code) && (
+        <div className="card">
+          <h3 className="text-lg font-semibold text-neutral-800 mb-4">Address</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {houseData.address && (
+              <div>
+                <label className="text-sm text-neutral-500">Street Address</label>
+                <p className="text-neutral-800 font-medium mt-1">{houseData.address}</p>
+              </div>
+            )}
+            {houseData.city && (
+              <div>
+                <label className="text-sm text-neutral-500">City</label>
+                <p className="text-neutral-800 font-medium mt-1">{houseData.city}</p>
+              </div>
+            )}
+            {houseData.state && (
+              <div>
+                <label className="text-sm text-neutral-500">State</label>
+                <p className="text-neutral-800 font-medium mt-1">{houseData.state}</p>
+              </div>
+            )}
+            {houseData.postal_code && (
+              <div>
+                <label className="text-sm text-neutral-500">ZIP Code</label>
+                <p className="text-neutral-800 font-medium mt-1">{houseData.postal_code}</p>
+              </div>
+            )}
           </div>
         </div>
-      </div>
+      )}
 
       {/* Appliances */}
       <div className="card">
@@ -307,56 +310,66 @@ export default function HouseProfile() {
           </button>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-neutral-200">
-                <th className="text-left py-3 px-4 text-sm font-semibold text-neutral-600">Appliance</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-neutral-600">Category</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-neutral-600">Wattage</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-neutral-600">Hours/Day</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-neutral-600">Est. Cost/Mo</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-neutral-600">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {appliances.map((appliance) => (
-                <tr key={appliance.id} className="border-b border-neutral-100 hover:bg-neutral-50">
-                  <td className="py-4 px-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                        <Zap className="w-4 h-4 text-primary" />
-                      </div>
-                      <span className="font-medium text-neutral-800">{appliance.name}</span>
-                    </div>
-                  </td>
-                  <td className="py-4 px-4 text-neutral-600">{appliance.category}</td>
-                  <td className="py-4 px-4 text-neutral-600">{appliance.wattage}W</td>
-                  <td className="py-4 px-4 text-neutral-600">{appliance.hours}h</td>
-                  <td className="py-4 px-4">
-                    <span className="font-semibold text-neutral-800">{formatCurrency(appliance.cost)}</span>
-                  </td>
-                  <td className="py-4 px-4">
-                    <div className="flex items-center gap-2">
-                      <button className="text-primary hover:text-primary-dark">
-                        <Edit className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        {appliances.length > 0 ? (
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-neutral-200">
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-neutral-600">Appliance</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-neutral-600">Category</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-neutral-600">Wattage</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-neutral-600">Hours/Day</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-neutral-600">Est. Cost/Mo</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-neutral-600">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {appliances.map((appliance) => (
+                    <tr key={appliance.id} className="border-b border-neutral-100 hover:bg-neutral-50">
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                            <Zap className="w-4 h-4 text-primary" />
+                          </div>
+                          <span className="font-medium text-neutral-800">{appliance.name}</span>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4 text-neutral-600">{appliance.category}</td>
+                      <td className="py-4 px-4 text-neutral-600">{appliance.wattage}W</td>
+                      <td className="py-4 px-4 text-neutral-600">{appliance.hours}h</td>
+                      <td className="py-4 px-4">
+                        <span className="font-semibold text-neutral-800">{formatCurrency(appliance.cost)}</span>
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-2">
+                          <button className="text-primary hover:text-primary-dark">
+                            <Edit className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
-        <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-neutral-600">Total Estimated Monthly Cost</span>
-            <span className="text-xl font-bold text-primary">
-              {formatCurrency(appliances.reduce((sum, a) => sum + a.cost, 0))}
-            </span>
+            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-neutral-600">Total Estimated Monthly Cost</span>
+                <span className="text-xl font-bold text-primary">
+                  {formatCurrency(appliances.reduce((sum, a) => sum + a.cost, 0))}
+                </span>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="text-center py-12">
+            <Zap className="w-16 h-16 text-neutral-300 mx-auto mb-4" />
+            <p className="text-neutral-500 mb-2">No appliances added yet</p>
+            <p className="text-sm text-neutral-400">Click "+ Add Appliance" to track your appliances</p>
           </div>
-        </div>
+        )}
       </div>
     </div>
   )
