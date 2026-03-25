@@ -98,119 +98,19 @@ export default function Landing() {
               </div>
             </div>
 
-            {/* Right Visual - Attractive Illustration */}
+            {/* Right Visual - Image */}
             <div className="relative">
               {/* Decorative circles */}
               <div className="absolute top-10 right-10 w-64 h-64 bg-gradient-to-br from-blue-200 to-blue-300 rounded-full opacity-20 blur-3xl animate-pulse"></div>
               <div className="absolute bottom-10 left-10 w-48 h-48 bg-gradient-to-br from-teal-200 to-teal-300 rounded-full opacity-20 blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
               
-              {/* Main illustration container */}
-              <div className="relative">
-                {/* Dashboard mockup illustration */}
-                <div className="relative bg-gradient-to-br from-white to-blue-50 rounded-3xl shadow-2xl p-8 transform hover:scale-105 transition-transform duration-500">
-                  {/* Browser-like header */}
-                  <div className="flex items-center gap-2 mb-6">
-                    <div className="w-3 h-3 rounded-full bg-red-400"></div>
-                    <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-                    <div className="w-3 h-3 rounded-full bg-green-400"></div>
-                  </div>
-
-                  {/* Illustration content */}
-                  <div className="space-y-6">
-                    {/* Header with icon */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center shadow-lg">
-                          <Receipt className="w-6 h-6 text-white" />
-                        </div>
-                        <div>
-                          <div className="h-3 w-24 bg-gradient-to-r from-neutral-300 to-neutral-200 rounded"></div>
-                          <div className="h-2 w-16 bg-neutral-200 rounded mt-2"></div>
-                        </div>
-                      </div>
-                      <div className="w-10 h-10 bg-gradient-to-br from-secondary to-secondary-dark rounded-full flex items-center justify-center shadow-lg animate-bounce">
-                        <Bell className="w-5 h-5 text-white" />
-                      </div>
-                    </div>
-
-                    {/* Stats cards */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl p-4 shadow-md transform hover:scale-105 transition-transform">
-                        <div className="flex items-center gap-2 mb-2">
-                          <IndianRupee className="w-5 h-5 text-blue-600" />
-                          <div className="h-2 w-16 bg-blue-300 rounded"></div>
-                        </div>
-                        <div className="h-6 w-20 bg-gradient-to-r from-blue-600 to-blue-700 rounded"></div>
-                      </div>
-                      
-                      <div className="bg-gradient-to-br from-green-100 to-green-200 rounded-2xl p-4 shadow-md transform hover:scale-105 transition-transform">
-                        <div className="flex items-center gap-2 mb-2">
-                          <TrendingDown className="w-5 h-5 text-green-600" />
-                          <div className="h-2 w-16 bg-green-300 rounded"></div>
-                        </div>
-                        <div className="h-6 w-20 bg-gradient-to-r from-green-600 to-green-700 rounded"></div>
-                      </div>
-                    </div>
-
-                    {/* Chart visualization */}
-                    <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-4 shadow-md">
-                      <div className="flex items-end justify-between h-32 gap-2">
-                        <div className="w-full bg-gradient-to-t from-primary to-primary-dark rounded-t-lg" style={{ height: '60%' }}></div>
-                        <div className="w-full bg-gradient-to-t from-secondary to-secondary-dark rounded-t-lg" style={{ height: '80%' }}></div>
-                        <div className="w-full bg-gradient-to-t from-purple-500 to-purple-600 rounded-t-lg" style={{ height: '45%' }}></div>
-                        <div className="w-full bg-gradient-to-t from-pink-500 to-pink-600 rounded-t-lg" style={{ height: '70%' }}></div>
-                        <div className="w-full bg-gradient-to-t from-amber-500 to-amber-600 rounded-t-lg" style={{ height: '55%' }}></div>
-                      </div>
-                    </div>
-
-                    {/* Bill items */}
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between p-3 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg flex items-center justify-center shadow-md">
-                            <Zap className="w-5 h-5 text-white" />
-                          </div>
-                          <div className="space-y-1">
-                            <div className="h-3 w-20 bg-neutral-300 rounded"></div>
-                            <div className="h-2 w-16 bg-neutral-200 rounded"></div>
-                          </div>
-                        </div>
-                        <div className="text-right space-y-1">
-                          <div className="h-4 w-16 bg-gradient-to-r from-neutral-700 to-neutral-800 rounded"></div>
-                          <div className="h-2 w-12 bg-amber-300 rounded"></div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between p-3 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-teal-400 to-teal-600 rounded-lg flex items-center justify-center shadow-md">
-                            <Receipt className="w-5 h-5 text-white" />
-                          </div>
-                          <div className="space-y-1">
-                            <div className="h-3 w-20 bg-neutral-300 rounded"></div>
-                            <div className="h-2 w-16 bg-neutral-200 rounded"></div>
-                          </div>
-                        </div>
-                        <div className="text-right space-y-1">
-                          <div className="h-4 w-16 bg-gradient-to-r from-neutral-700 to-neutral-800 rounded"></div>
-                          <div className="h-2 w-12 bg-green-300 rounded"></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Floating elements */}
-                <div className="absolute -top-6 -right-6 w-20 h-20 bg-gradient-to-br from-secondary to-secondary-dark rounded-2xl shadow-xl flex items-center justify-center animate-bounce">
-                  <span className="text-2xl font-bold text-white">15%</span>
-                </div>
-                
-                <div className="absolute -bottom-6 -left-6 w-24 h-24 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl shadow-xl flex items-center justify-center transform rotate-12 hover:rotate-0 transition-transform">
-                  <div className="text-center">
-                    <div className="text-xs text-white/80">Save</div>
-                    <div className="text-lg font-bold text-white">₹5.2K</div>
-                  </div>
-                </div>
+              {/* Dashboard preview image */}
+              <div className="relative transform hover:scale-105 transition-transform duration-500">
+                <img 
+                  src="/images/dashboard-preview.webp" 
+                  alt="Smart Home Bill Manager Dashboard Preview" 
+                  className="w-full h-auto rounded-3xl shadow-2xl"
+                />
               </div>
             </div>
           </div>
