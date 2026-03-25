@@ -98,19 +98,25 @@ export default function Landing() {
               </div>
             </div>
 
-            {/* Right Visual - Image */}
+            {/* Right Visual - Smart Home Image */}
             <div className="relative">
               {/* Decorative circles */}
               <div className="absolute top-10 right-10 w-64 h-64 bg-gradient-to-br from-blue-200 to-blue-300 rounded-full opacity-20 blur-3xl animate-pulse"></div>
               <div className="absolute bottom-10 left-10 w-48 h-48 bg-gradient-to-br from-teal-200 to-teal-300 rounded-full opacity-20 blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
               
-              {/* Dashboard preview image */}
+              {/* Smart home hero image */}
               <div className="relative transform hover:scale-105 transition-transform duration-500">
                 <img 
-                  src="/images/dashboard-preview.webp" 
-                  alt="Smart Home Bill Manager Dashboard Preview" 
+                  src="/images/smart-home-hero.jpg" 
+                  alt="Smart Home with Connected Devices" 
                   className="w-full h-auto rounded-3xl shadow-2xl"
+                  onError={(e) => {
+                    // Fallback to dashboard preview if smart home image not found
+                    e.target.src = '/images/dashboard-preview.webp'
+                  }}
                 />
+                {/* Overlay gradient for better text visibility if needed */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-3xl pointer-events-none"></div>
               </div>
             </div>
           </div>
