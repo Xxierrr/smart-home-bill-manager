@@ -371,7 +371,17 @@ export default function Settings() {
               <option value="EUR">EUR (€)</option>
               <option value="GBP">GBP (£)</option>
             </select>
+            <p className="text-xs text-neutral-500 mt-2">
+              This will change how amounts are displayed throughout the app
+            </p>
           </div>
+          <button 
+            onClick={handleSaveChanges}
+            disabled={loading}
+            className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Saving...' : 'Save Preferences'}
+          </button>
         </div>
       </div>
     </div>
