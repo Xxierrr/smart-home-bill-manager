@@ -13,6 +13,7 @@ const HouseProfile = lazy(() => import('./pages/HouseProfile'))
 const Settings = lazy(() => import('./pages/Settings'))
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
+const ResetPassword = lazy(() => import('./pages/ResetPassword'))
 
 // Loading fallback component for better UX
 function LoadingFallback() {
@@ -40,6 +41,7 @@ function AppRoutes() {
         <Route path="/" element={!isAuthenticated ? <Landing /> : <Navigate to="/dashboard" replace />} />
         <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/dashboard" replace />} />
         <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/dashboard" replace />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         
         {/* Protected Routes */}
         <Route
