@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { User, Bell, Lock, Globe } from 'lucide-react'
+import { User, Bell, Lock } from 'lucide-react'
 import { supabase } from '../config/supabase'
 import { useAuth } from '../context/AuthContext'
 
@@ -347,41 +347,6 @@ export default function Settings() {
               </div>
             </div>
           )}
-        </div>
-      </div>
-
-      {/* Preferences */}
-      <div className="card">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-            <Globe className="w-5 h-5 text-purple-600" />
-          </div>
-          <h3 className="text-lg font-semibold text-neutral-800">Preferences</h3>
-        </div>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-2">Currency</label>
-            <select 
-              className="input-field"
-              value={userData.preferences?.currency || 'INR'}
-              onChange={(e) => handlePreferenceChange('currency', e.target.value)}
-            >
-              <option value="INR">INR (₹)</option>
-              <option value="USD">USD ($)</option>
-              <option value="EUR">EUR (€)</option>
-              <option value="GBP">GBP (£)</option>
-            </select>
-            <p className="text-xs text-neutral-500 mt-2">
-              This will change how amounts are displayed throughout the app
-            </p>
-          </div>
-          <button 
-            onClick={handleSaveChanges}
-            disabled={loading}
-            className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Saving...' : 'Save Preferences'}
-          </button>
         </div>
       </div>
     </div>
