@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Mail, Lock, Check } from 'lucide-react'
+import { Mail, Lock, Check, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { supabase } from '../config/supabase'
 
 export default function Login() {
   const [formData, setFormData] = useState({
@@ -11,6 +12,9 @@ export default function Login() {
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showResetModal, setShowResetModal] = useState(false)
+  const [resetEmail, setResetEmail] = useState('')
+  const [resetMessage, setResetMessage] = useState('')
   const { login, loginWithGoogle } = useAuth()
   const navigate = useNavigate()
 
@@ -60,6 +64,36 @@ export default function Login() {
       setLoading(false)
     }
     // If successful, user will be redirected to Google
+  }
+
+  const handleForgotPassword = async () => {
+    if (!resetEmail) {
+      setResetMessage('❌ Please enter your email address')
+      return
+    }
+
+    setLoading(true)
+    setResetMessage('')
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/reset-password`
+      })
+
+      if (error) throw error
+
+      setResetMessage('✅ Password reset link sent! Check your email.')
+      setTimeout(() => {
+        setShowResetModal(false)
+        setResetEmail('')
+        setResetMessage('')
+      }, 3000)
+    } catch (error) {
+      console.error('Password reset error:', error)
+      setResetMessage('❌ ' + (error.message || 'Failed to send reset email'))
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -214,7 +248,14 @@ export default function Login() {
                       </div>
                       <span className="text-sm text-neutral-600">Remember Me</span>
                     </label>
-                    <a href="#" className="text-sm text-neutral-500 hover:text-primary transition-colors">
+                    <a 
+                      href="#" 
+                      onClick={(e) => {
+                        e.preventDefault()
+                        setShowResetModal(true)
+                      }}
+                      className="text-sm text-neutral-500 hover:text-primary transition-colors"
+                    >
                       Forget Password?
                     </a>
                   </div>
@@ -272,6 +313,76 @@ export default function Login() {
           </div>
         </div>
       </div>
+
+      {/* Forgot Password Modal */}
+      {showResetModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold text-neutral-800">Reset Password</h2>
+              <button 
+                onClick={() => {
+                  setShowResetModal(false)
+                  setResetEmail('')
+                  setResetMessage('')
+                }}
+                className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-neutral-600" />
+              </button>
+            </div>
+
+            <p className="text-neutral-600 mb-6">
+              Enter your email address and we'll send you a link to reset your password.
+            </p>
+
+            {resetMessage && (
+              <div className={`mb-4 p-4 rounded-lg text-sm ${
+                resetMessage.includes('✅') 
+                  ? 'bg-green-50 text-green-800 border border-green-200' 
+                  : 'bg-red-50 text-red-800 border border-red-200'
+              }`}>
+                {resetMessage}
+              </div>
+            )}
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-neutral-700 mb-2">Email Address</label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
+                <input
+                  type="email"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  placeholder="your.email@example.com"
+                  className="w-full pl-12 pr-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                  onKeyPress={(e) => e.key === 'Enter' && handleForgotPassword()}
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button 
+                onClick={handleForgotPassword}
+                disabled={loading}
+                className="flex-1 bg-primary hover:bg-primary-dark text-white font-semibold py-3 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Sending...' : 'Send Reset Link'}
+              </button>
+              <button 
+                onClick={() => {
+                  setShowResetModal(false)
+                  setResetEmail('')
+                  setResetMessage('')
+                }}
+                className="flex-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-semibold py-3 rounded-xl transition-all"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
