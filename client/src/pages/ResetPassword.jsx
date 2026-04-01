@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Lock, Check } from 'lucide-react'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { Lock, Check, AlertCircle } from 'lucide-react'
 import { supabase } from '../config/supabase'
 
 export default function ResetPassword() {
@@ -9,18 +9,53 @@ export default function ResetPassword() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [sessionChecking, setSessionChecking] = useState(true)
   const navigate = useNavigate()
+  const location = useLocation()
 
   useEffect(() => {
-    // Check if we have a valid session from the reset link
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        setError('Invalid or expired reset link. Please request a new one.')
+    // Handle the auth callback and check session
+    const handleAuthCallback = async () => {
+      try {
+        // Get the hash from URL (Supabase sends tokens in hash)
+        const hashParams = new URLSearchParams(location.hash.substring(1))
+        const accessToken = hashParams.get('access_token')
+        const refreshToken = hashParams.get('refresh_token')
+        const type = hashParams.get('type')
+
+        console.log('Auth callback type:', type)
+        console.log('Has access token:', !!accessToken)
+
+        // If we have tokens in the URL, set the session
+        if (accessToken && type === 'recovery') {
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken
+          })
+
+          if (error) {
+            console.error('Session error:', error)
+            setError('Invalid or expired reset link. Please request a new one.')
+          }
+        } else {
+          // Check if we already have a valid session
+          const { data: { session }, error } = await supabase.auth.getSession()
+          
+          if (error || !session) {
+            console.error('No valid session:', error)
+            setError('Invalid or expired reset link. Please request a new one.')
+          }
+        }
+      } catch (err) {
+        console.error('Auth callback error:', err)
+        setError('Something went wrong. Please try again.')
+      } finally {
+        setSessionChecking(false)
       }
     }
-    checkSession()
-  }, [])
+
+    handleAuthCallback()
+  }, [location])
 
   const handleResetPassword = async (e) => {
     e.preventDefault()
@@ -62,6 +97,17 @@ export default function ResetPassword() {
     }
   }
 
+  if (sessionChecking) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-white to-neutral-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <p className="mt-4 text-neutral-600">Verifying reset link...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-white to-neutral-100 relative overflow-hidden">
       {/* Decorative Background Shapes */}
@@ -94,8 +140,19 @@ export default function ResetPassword() {
               </p>
 
               {error && (
-                <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm">
-                  {error}
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-medium mb-1">{error}</p>
+                    {error.includes('expired') && (
+                      <button
+                        onClick={() => navigate('/login')}
+                        className="text-primary hover:underline text-xs"
+                      >
+                        Request a new reset link
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
 
